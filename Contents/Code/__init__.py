@@ -13,6 +13,7 @@ class ShokoTVAgent(Agent.TV_Shows):
     contributes_to = None
 
     def search(self, results, media, lang, manual):
+        pass
 
     def update(self, metadata, media, lang, force):
-
+        pass
