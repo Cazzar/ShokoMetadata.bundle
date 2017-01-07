@@ -1,0 +1,31 @@
+[
+    {
+        "id": "Username",
+        "label": "The username to log into shoko server",
+        "type": "text",
+        "default": "Default"
+    },
+
+    {
+        "id": "Password",
+        "label": "The password for above username",
+        "type": "text",
+        "option": "hidden",
+        "default": "",
+        "secure": true
+    },
+
+    {
+        "id": "Port",
+        "label": "The port for Shoko",
+        "type": "text",
+        "default": "Default"
+    },
+
+    {
+        "id": "Hostname",
+        "label": "The host for Shoko",
+        "type": "text",
+        "default": "Default"
+    }
+]
