@@ -31,15 +31,14 @@ class ShokoTVAgent(Agent.TV_Shows):
     accepts_from = None 
     contributes_to = None
 
-    def search(self, results, media, lang, manual):
-        name = media.primary_metadata.name
+    def search(self, results, media, lang):
+        name = media.name
         #http://127.0.0.1:8111/api/serie/search?query=Clannad&level=1&apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579
 
         results = HttpReq("%s/api/serie/search?query=%s&level=%d&apikey=%s" % (PLEX_HOST, urllib.quote(name), 0, API_KEY))
-        Log(results[0].title)
         pass
 
-    def update(self, metadata, media, lang, force):
+    def update(self, metadata, media, lang):
         title = media.show
         metadata.title = "Clannad"
         metata.summary = "This is something else"
