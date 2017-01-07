@@ -16,16 +16,16 @@
     },
 
     {
-        "id": "Port",
-        "label": "The port for Shoko",
-        "type": "text",
-        "default": "Default"
-    },
-
-    {
         "id": "Hostname",
         "label": "The host for Shoko",
         "type": "text",
-        "default": "Default"
+        "default": "127.0.0.1"
+    },
+
+    {
+        "id": "Port",
+        "label": "The port for Shoko",
+        "type": "text",
+        "default": "8111"
     }
 ]

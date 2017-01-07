@@ -16,4 +16,6 @@ class ShokoTVAgent(Agent.TV_Shows):
         pass
 
     def update(self, metadata, media, lang, force):
-        pass
+        title = media.show
+        metadata.title = "This is a dummy"
+        metata.summary = "This is something else"
