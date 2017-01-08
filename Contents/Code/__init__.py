@@ -32,7 +32,7 @@ def HttpPost(url, postdata):
 def HttpReq(url, authenticate = True):
     Log("Requesting: %s" % url)
     apistring = ''
-    if authenticate:
+    if authenticate: 
         apistring = '&apikey=%s' % GetApiKey()
 
     return JSON.ObjectFromString(HTTP.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, apistring)).content)
@@ -50,7 +50,7 @@ class ShokoTVAgent(Agent.TV_Shows):
         
         #http://127.0.0.1:8111/api/serie/search?query=Clannad&level=1&apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579
 
-        pelimresults = HttpReq("api/serie/search?query=%s&level=%d" % (urllib.quote(name), 0))
+        pelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=true" % (urllib.quote(name), 0))
         i = 0
         for result in pelimresults:
             score = 100 if result['title'] == name else 85 #TODO: Improve this to respect synonyms./
