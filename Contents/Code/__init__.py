@@ -42,8 +42,8 @@ class ShokoTVAgent(Agent.TV_Shows):
     languages = [ Locale.Language.English, ] 
     primary_provider = True 
     fallback_agent = False 
-    accepts_from = None 
-    contributes_to = ['com.plexapp.agents.hama']
+    accepts_from = ['com.plexapp.agents.hama'] 
+    contributes_to = None
 
     def search(self, results, media, lang):
         name = media.show
