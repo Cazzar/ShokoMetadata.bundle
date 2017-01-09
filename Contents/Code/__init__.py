@@ -76,6 +76,11 @@ class ShokoTVAgent(Agent.TV_Shows):
         tags = []
         for tag in series['tags']:
             tags.append(tag['tag'])
+        
+        tags.remove('Meta Tags')
+        tags.remove('Cast') #TODO: Work this better.
+        tags.remove('TO BE MOVED TO EPISODE')
+        tags.remove('TO BE MOVED TO CHARACTER')
 
         metadata.genres = tags
         Log(tags)
