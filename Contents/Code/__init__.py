@@ -77,7 +77,8 @@ class ShokoTVAgent(Agent.TV_Shows):
         for tag in series['tags']:
             tags.append(tag['tag'])
 
-        metadata.tags = tags
+        metadata.genres = tags
+        Log(tags)
 
         if (len(series['art']['banner'])):
             for art in series['art']['banner']:
