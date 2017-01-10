@@ -77,10 +77,10 @@ class ShokoTVAgent(Agent.TV_Shows):
         for tag in series['tags']:
             tags.append(tag['tag'])
         
-        tags.remove('Meta Tags')
-        tags.remove('Cast') #TODO: Work this better.
-        tags.remove('TO BE MOVED TO EPISODE')
-        tags.remove('TO BE MOVED TO CHARACTER')
+        try_to_remove(tags, 'Meta Tags')
+        try_to_remove(tags, 'Cast') #TODO: Work this better.
+        try_to_remove(tags, 'TO BE MOVED TO EPISODE')
+        try_to_remove(tags, 'TO BE MOVED TO CHARACTER')
 
         metadata.genres = tags
         Log(tags)
@@ -96,3 +96,9 @@ class ShokoTVAgent(Agent.TV_Shows):
         if (len(series['art']['fanart'])):
             for art in series['art']['fanart']:
                 metadata.art[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+
+def try_to_remove(arr, val):
+    try:
+        arr.remove(val)
+    except:
+        pass
