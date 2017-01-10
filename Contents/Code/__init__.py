@@ -83,7 +83,6 @@ class ShokoTVAgent(Agent.TV_Shows):
         try_to_remove(tags, 'TO BE MOVED TO CHARACTER')
 
         metadata.genres = tags
-        Log(tags)
 
         if (len(series['art']['banner'])):
             for art in series['art']['banner']:
@@ -96,6 +95,33 @@ class ShokoTVAgent(Agent.TV_Shows):
         if (len(series['art']['fanart'])):
             for art in series['art']['fanart']:
                 metadata.art[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+
+        ### Generate general content ratings.
+        ### VERY rough approximation to: https://www.healthychildren.org/English/family-life/Media/Pages/TV-Ratings-A-Guide-for-Parents.aspx
+
+        if (Prefs["Ratings"]):
+            if ('Kodomo' in tags):
+                metadata.content_rating = 'TV-Y'
+
+            if ('Mina' in tags):
+                metadata.content_rating = 'TV-G'
+
+            if ('Shoujo' in tags):
+                metadata.content_rating = 'TV-14'
+
+            if ('Shounen' in tags):
+                metadata.content_rating = 'TV-14'
+
+            if ('Josei' in tags):
+                metadata.content_rating = 'TV-14'
+
+            if ('Seinen' in tags):
+                metadata.content_rating = 'TV-MA'
+
+            if ('18 Restricted' in tags):
+                metadata.content_rating = 'TV-R'
+            
+            Log('Assumed tv rating to be: %s' % metadata.content_rating)
 
 def try_to_remove(arr, val):
     try:

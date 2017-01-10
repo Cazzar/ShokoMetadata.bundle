@@ -27,5 +27,12 @@
         "label": "The port for Shoko",
         "type": "text",
         "default": "8111"
+    },
+
+    {
+        "id": "Ratings",
+        "label": "Enable using the \"assumed\" ratings portion of the code",
+        "type": "bool",
+        "default": false
     }
 ]
