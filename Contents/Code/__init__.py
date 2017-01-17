@@ -1,5 +1,6 @@
 import os, re, time, string, thread, threading, urllib, copy
 from lxml import etree
+from datetime import datetime
 
 API_KEY = ''
 PLEX_HOST = ''
@@ -37,15 +38,8 @@ def HttpReq(url, authenticate = True):
 
     return JSON.ObjectFromString(HTTP.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, apistring)).content)
 
-class ShokoTVAgent(Agent.TV_Shows):
-    name = 'Shoko' 
-    languages = [ Locale.Language.English, ] 
-    primary_provider = True 
-    fallback_agent = False 
-    accepts_from = ['com.plexapp.agents.hama'] 
-    contributes_to = None
-
-    def search(self, results, media, lang):
+class ShokoCommonAgent:
+    def Search(self, results, media, lang, manual, movie):
         name = media.show
         
         #http://127.0.0.1:8111/api/serie/search?query=Clannad&level=1&apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579
@@ -59,7 +53,7 @@ class ShokoTVAgent(Agent.TV_Shows):
 
         #results.Sort('score', descending=True)
 
-    def update(self, metadata, media, lang):
+    def Update(self, metadata, media, lang, force, movie):
         Log("update(%s)" % metadata.id)
         aid = metadata.id
         # title = media.name
@@ -123,8 +117,42 @@ class ShokoTVAgent(Agent.TV_Shows):
             
             Log('Assumed tv rating to be: %s' % metadata.content_rating)
 
+        if (not movie):
+            for ep in series['eps']:
+                if ep['eptype'] != 1:
+                    continue
+
+                season = 1
+                try:
+                    season = int(ep['season'].split(x)[0])
+                except:
+                    pass
+
+                episodeObj = metadata.seasons[season].episodes[ep['epnumber']]
+                episodeObj.title = ep['title']
+                episodeObj.summary = ep['summary']
+
+                if ep['air'] != '1/01/0001 12:00:00 AM':
+                    episodeObj.originally_available_at = datetime.strptime(ep['air'], "%d/%m/%Y %H:%M:%S %p").date()
+
+                if (len(series['art']['thumb'])):
+                    for art in series['art']['thumb']:
+                        episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+
+
 def try_to_remove(arr, val):
     try:
         arr.remove(val)
     except:
         pass
+
+class ShokoTVAgent(Agent.TV_Shows, ShokoCommonAgent):
+  name, primary_provider, fallback_agent, contributes_to, accepts_from = ('ShokoTV', True, False, ['com.plexapp.agents.hama'], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
+  languages = [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr']
+  def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, False )
+  def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  False )
+
+class ShokoMovieAgent(Agent.Movies, ShokoCommonAgent):
+  name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('ShokoMovies', True, False, ['com.plexapp.agents.hama'], [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
+  def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, True )
+  def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  True )
