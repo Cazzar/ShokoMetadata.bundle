@@ -34,5 +34,38 @@
         "label": "Enable using the \"assumed\" ratings portion of the code",
         "type": "bool",
         "default": false
+    },
+    {
+        "id": "hideArtTags",
+        "label": "Hide artstyle related tags by default",
+        "type": "bool",
+        "default": false
+    },
+    {
+        "id": "hideSourceTags",
+        "label": "Hide source related tags by default",
+        "type": "bool",
+        "default": false
+    },
+
+    {
+        "id": "hideUsefulMiscTags",
+        "label": "Hide misc info tags that may be useful by default",
+        "type": "bool",
+        "default": false
+    },
+
+    {
+        "id": "hideSpoilerTags",
+        "label": "Hide potentially plot-spoiling tags",
+        "type": "bool",
+        "default": true
+    },
+
+    {
+        "id": "hideMiscTags",
+        "label": "Hide any miscellaneous tags.",
+        "type": "bool",
+        "default": true
     }
 ]

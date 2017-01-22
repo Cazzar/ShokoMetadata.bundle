@@ -1,6 +1,7 @@
 import os, re, time, string, thread, threading, urllib, copy
 from lxml import etree
 from datetime import datetime
+import TagBlacklist
 
 API_KEY = ''
 PLEX_HOST = ''
@@ -70,11 +71,8 @@ class ShokoCommonAgent:
         tags = []
         for tag in series['tags']:
             tags.append(tag['tag'])
-        
-        try_to_remove(tags, 'Meta Tags')
-        try_to_remove(tags, 'Cast') #TODO: Work this better.
-        try_to_remove(tags, 'TO BE MOVED TO EPISODE')
-        try_to_remove(tags, 'TO BE MOVED TO CHARACTER')
+
+        TagBlacklist.processTags(tags)
 
         metadata.genres = tags
 
@@ -149,10 +147,10 @@ def try_to_remove(arr, val):
 class ShokoTVAgent(Agent.TV_Shows, ShokoCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, accepts_from = ('ShokoTV', True, False, ['com.plexapp.agents.hama'], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
   languages = [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr']
-  def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, False )
-  def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  False )
+  def search(self, results, media, lang, manual): self.Search(results, media, lang, manual, False)
+  def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force, False)
 
 class ShokoMovieAgent(Agent.Movies, ShokoCommonAgent):
   name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = ('ShokoMovies', True, False, ['com.plexapp.agents.hama'], [Locale.Language.English,], ['com.plexapp.agents.localmedia'] ) #, 'com.plexapp.agents.opensubtitles'
-  def search(self, results,  media, lang, manual): self.Search(results,  media, lang, manual, True )
-  def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force,  True )
+  def search(self, results, media, lang, manual): self.Search(results, media, lang, manual, True)
+  def update(self, metadata, media, lang, force ): self.Update(metadata, media, lang, force, True)
