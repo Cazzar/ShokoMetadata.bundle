@@ -10,6 +10,8 @@ Naming episodes/series works best with [This format](https://support.plex.tv/hc/
 
 Though Some defaults from Shoko do work, personally, I use:
 
+**disclaimer:**: this doesn't work 100% I am working alongside the Shoko devs for better naming support.
+
 ```
 // Sample Output: [Coalgirls]_Highschool_of_the_Dead_-_01_(1920x1080_Blu-ray_H264)_[90CC6DC1].mkv
 // Sub group name
