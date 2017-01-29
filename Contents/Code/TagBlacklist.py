@@ -1,6 +1,6 @@
 # Comment any you don't believe should be in here or create an ongoing issue for discussion
 # Some are in here as they are folders, with only recursive anime belonging to them (those will have more specific tags)
-tagBlacklistAniDBHelpers=[
+tagBlacklistAniDBHelpers = [
     "body and host",
     "breasts",
     "broadcast cropped to 4-3",
@@ -32,7 +32,7 @@ tagBlacklistAniDBHelpers=[
     "season",
     "sentai",
     "setting",
-    "some weird shit goin` on", # these are some grave accents in use...
+    "some weird shit goin` on",  # these are some grave accents in use...
     "storytelling",
     "tales",
     "target audience",
@@ -46,7 +46,7 @@ tagBlacklistAniDBHelpers=[
     "unsorted"
 ]
 
-tagBlackListSource=[
+tagBlackListSource = [
     "4-koma",
     "action game",
     "erotic game",
@@ -67,7 +67,7 @@ tagBlackListSource=[
     "visual novel"
 ]
 
-tagBlackListArtStyle=[
+tagBlackListArtStyle = [
     "3d cg animation",
     "3d cg closing",
     "cel-shaded animation",
@@ -88,7 +88,7 @@ tagBlackListArtStyle=[
     "widescreen transition"
 ]
 
-tagBlackListUsefulHelpers=[
+tagBlackListUsefulHelpers = [
     "ed variety",
     "half-length episodes",
     "long episodes",
@@ -103,7 +103,7 @@ tagBlackListUsefulHelpers=[
     "subtle op ed sequence change"
 ]
 
-tagBlackListPlotSpoilers=[
+tagBlackListPlotSpoilers = [
     "branching story",
     "cliffhangers",
     "colour coded",
@@ -123,104 +123,104 @@ tagBlackListPlotSpoilers=[
     "unresolved romance"
 ]
 
+
 # Feed this a list of str types
 def processTags(string):
-
-    toRemove=[]
-    removeOriginal=False
+    to_remove = []
+    remove_original = False
 
     for a in string:
         tag = str(a).lower().strip()
         if Prefs['hideArtTags']:
             for remove in tagBlackListArtStyle:
                 if remove == tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                     break
             if "censor" in tag:
-                toRemove.append(a)
+                to_remove.append(a)
         if Prefs['hideSourceTags']:
             for remove in tagBlackListSource:
                 if remove == tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                     break
             if "original work" == tag:
-                toRemove.append(a)
+                to_remove.append(a)
         else:
             for remove in tagBlackListSource:
                 if remove == tag:
-                    removeOriginal=True
+                    remove_original = True
                     break
 
         if Prefs['hideUsefulMiscTags']:
             for remove in tagBlackListUsefulHelpers:
                 if remove == tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                     break
             if tag.startswith("preview"):
-                toRemove.append(a)
+                to_remove.append(a)
 
         if Prefs['hideSpoilerTags']:
             for remove in tagBlackListPlotSpoilers:
                 if remove == tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                     break
             if tag.startswith("plot"):
-                toRemove.append(a)
+                to_remove.append(a)
             if tag.endswith(" dies"):
-                toRemove.append(a)
+                to_remove.append(a)
             if tag.endswith(" end"):
-                toRemove.append(a)
+                to_remove.append(a)
             if tag.endswith(" ending"):
-                toRemove.append(a)
+                to_remove.append(a)
 
         if Prefs['hideMiscTags']:
             for remove in tagBlacklistAniDBHelpers:
                 if remove == tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                     break
             if "to be" in tag:
                 if "merged" in tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                 elif "deleted" in tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                 elif "split" in tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                 elif "moved" in tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                 elif "improved" in tag or "improving" in tag or "improvement" in tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
             elif "need" in tag or "needs" in tag:
                 if "merging" in tag or "merged" in tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                 elif "deleting" in tag or "deleted" in tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                 elif "moving" in tag or "moved" in tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
                 elif "improved" in tag or "improving" in tag or "improvement" in tag:
-                    toRemove.append(a)
+                    to_remove.append(a)
             elif "old animetags" in tag:
-                toRemove.append(a)
+                to_remove.append(a)
             elif "missing" in tag:
-                toRemove.append(a)
+                to_remove.append(a)
             elif tag.startswith("predominantly"):
-                toRemove.append(a)
+                to_remove.append(a)
             elif tag.startswith("weekly"):
-                toRemove.append(a)
+                to_remove.append(a)
 
     toAdd = []
     # on a separate loop in case 'original work' came before the source
-    if removeOriginal:
+    if remove_original:
         for a in string:
             tag = str(a).lower().strip()
             if tag == "new":
                 toAdd.append('Original Work')
             elif tag == "original work":
-                toRemove.append("original work")
+                to_remove.append("original work")
                 # both just in case
-                toRemove.append("Original Work")
+                to_remove.append("Original Work")
                 break
 
-    for a in toRemove:
+    for a in to_remove:
         if a in string:
             string.remove(a)
 
