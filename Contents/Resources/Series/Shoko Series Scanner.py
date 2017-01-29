@@ -106,8 +106,6 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
         log('Scan', 'episode title: %s', episodeTitle)
 
         vid = Media.Episode(showTitle, int(seasonNumber), episodeNumber , episodeTitle, int(seasonYear))
-        if (seasonNumber > 0)
-
         log('Scan', 'vid: %s', vid)
         vid.parts.append(file)
         mediaList.append(vid)
