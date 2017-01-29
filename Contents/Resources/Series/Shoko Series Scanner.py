@@ -8,7 +8,7 @@ Prefs = {
     'Port': 8111,
     'Username': 'Default',
     'Password': '',
-    'IncludeOther': true
+    'IncludeOther': True
 }
 
 API_KEY = ''
