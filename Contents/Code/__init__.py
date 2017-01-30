@@ -65,7 +65,7 @@ class ShokoCommonAgent:
             # results.Sort('score', descending=True)
 
     def Update(self, metadata, media, lang, force, movie):
-        Log("update(%s, %s)" % (metadata.id, metadata.seasons[1].episodes[1].filename))
+        Log("update(%s)" % (metadata.id))
         aid = metadata.id
         # title = media.name
         # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
