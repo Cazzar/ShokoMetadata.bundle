@@ -54,9 +54,9 @@ class ShokoCommonAgent:
 
         # http://127.0.0.1:8111/api/serie/search?query=Clannad&level=1&apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579
 
-        pelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=1" % (urllib.quote(name), 0))
+        prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=1" % (urllib.quote(name), 0))
 
-        for group in pelimresults['groups']:
+        for group in prelimresults['groups']:
             for result in group['series']:
                 score = 100 if result['title'] == name else 85  # TODO: Improve this to respect synonyms./
                 meta = MetadataSearchResult('%s' % result['id'], result['title'], result['year'], score, lang)
