@@ -54,7 +54,7 @@ class ShokoCommonAgent:
 
         # http://127.0.0.1:8111/api/serie/search?query=Clannad&level=1&apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579
 
-        prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=1" % (urllib.quote(name), 1))
+        prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=%d" % (urllib.quote(name), 1, Prefs['Fuzzy']))
 
         for result in prelimresults:
             #for result in group['series']:
