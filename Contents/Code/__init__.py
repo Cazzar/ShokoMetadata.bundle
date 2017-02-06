@@ -126,7 +126,7 @@ class ShokoCommonAgent:
             Log('Assumed tv rating to be: %s' % metadata.content_rating)
 
         for t in series['titles']:
-            if (t['type'] == 'official' || t['language'] == 'ja'):
+            if (t['type'] == 'official' or t['language'] == 'ja'):
                 metadata.original_title = t['title']
 
 
