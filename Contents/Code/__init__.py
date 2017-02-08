@@ -54,13 +54,13 @@ class ShokoCommonAgent:
 
         # http://127.0.0.1:8111/api/serie/search?query=Clannad&level=1&apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579
 
-        prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=1" % (urllib.quote(name), 0))
+        prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=%d" % (urllib.quote(name), 1, Prefs['Fuzzy']))
 
-        for group in prelimresults['groups']:
-            for result in group['series']:
-                score = 100 if result['title'] == name else 85  # TODO: Improve this to respect synonyms./
-                meta = MetadataSearchResult('%s' % result['id'], result['title'], result['year'], score, lang)
-                results.Append(meta)
+        for result in prelimresults:
+            #for result in group['series']:
+            score = 100 if result['name'] == name else 85  # TODO: Improve this to respect synonyms./
+            meta = MetadataSearchResult('%s' % result['id'], result['name'], result['year'], score, lang)
+            results.Append(meta)
 
             # results.Sort('score', descending=True)
 
@@ -71,11 +71,11 @@ class ShokoCommonAgent:
         # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
 
         # episode_data = HttpReq("api/ep/getbyfilename?apikey=%s&filename=%s" % (GetApiKey(), urllib.quote(media.filename)))
-        series = HttpReq("api/serie?id=%s" % aid)
+        series = HttpReq("api/serie?id=%s&level=3" % aid)
 
         # build metadata on the TV show.
         metadata.summary = series['summary']
-        metadata.title = series['title']
+        metadata.title = series['name']
         metadata.rating = float(series['rating'])
 
         tags = []
@@ -125,6 +125,11 @@ class ShokoCommonAgent:
 
             Log('Assumed tv rating to be: %s' % metadata.content_rating)
 
+        for t in series['titles']:
+            if (t['type'] == 'official' and t['language'] == 'ja'):
+                metadata.original_title = t['title']
+
+
         if not movie:
             for ep in series['eps']:
                 if ep['eptype'] != 1:
@@ -137,7 +142,7 @@ class ShokoCommonAgent:
                     pass
 
                 episodeObj = metadata.seasons[season].episodes[ep['epnumber']]
-                episodeObj.title = ep['title']
+                episodeObj.title = ep['name']
                 episodeObj.summary = ep['summary']
 
                 if ep['air'] != '1/01/0001 12:00:00 AM':
