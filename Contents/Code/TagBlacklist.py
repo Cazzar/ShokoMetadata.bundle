@@ -43,7 +43,8 @@ tagBlacklistAniDBHelpers = [
     "translation convention",
     "tropes",
     "ungrouped",
-    "unsorted"
+    "unsorted",
+    "fetishes"
 ]
 
 tagBlackListSource = [
