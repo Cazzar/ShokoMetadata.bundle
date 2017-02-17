@@ -74,7 +74,7 @@ class ShokoCommonAgent:
         series = HttpReq("api/serie?id=%s&level=3" % aid)
 
         # build metadata on the TV show.
-        metadata.summary = series['summary']
+        metadata.summary = try_get(series, 'summary')
         metadata.title = series['name']
         metadata.rating = float(series['rating'])
 
@@ -153,11 +153,11 @@ class ShokoCommonAgent:
                         episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
 
 
-def try_to_remove(arr, val):
+def try_get(arr, idx, default=""):
     try:
-        arr.remove(val)
+        return arr[idx]
     except:
-        pass
+        return default
 
 
 class ShokoTVAgent(Agent.TV_Shows, ShokoCommonAgent):
