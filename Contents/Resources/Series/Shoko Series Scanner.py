@@ -82,11 +82,12 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
         log('Scan', 'show title: %s', showTitle)
 
         seasonNumber = 0
-        if episode_data['season'] == None:
+        seasonStr = try_get(episode_data, 'season', None)
+        if seasonStr == None:
             if episode_data['eptype'] == 'Episode': seasonNumber = 1
             if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
         else:
-            seasonNumber = episode_data['season'].split('x')[0]
+            seasonNumber = seasonStr.split('x')[0]
 
         if seasonNumber <= 0 and Prefs['IncludeOther'] == False: break #Ignore this by choice.
             
@@ -113,3 +114,10 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
     log('Scan', 'stack media')
     Stack.Scan(path, files, mediaList, subdirs)
     log('Scan', 'media list %s', mediaList)
+
+
+def try_get(arr, idx, default=""):
+    try:
+        return arr[idx]
+    except:
+        return default
