@@ -1,7 +1,7 @@
 import os, re, time, string, thread, threading, urllib, copy
 from lxml import etree
 from datetime import datetime
-import TagBlacklist
+import tags as TagBlacklist
 
 API_KEY = ''
 PLEX_HOST = ''
@@ -82,7 +82,14 @@ class ShokoCommonAgent:
         for tag in series['tags']:
             tags.append(tag['tag'])
 
-        TagBlacklist.processTags(tags)
+        flags = 0
+        flags = flags | Prefs['hideMiscTags']       << 0 #0b00001 : Hide AniDB Internal Tags
+        flags = flags | Prefs['hideArtTags']        << 1 #0b00010 : Hide Art Style Tags
+        flags = flags | Prefs['hideSourceTags']     << 2 #0b00100 : Hide Source Work Tags
+        flags = flags | Prefs['hideUsefulMiscTags'] << 3 #0b01000 : Hide Useful Miscellaneous Tags
+        flags = flags | Prefs['hideSpoilerTags']    << 4 #0b10000 : Hide Plot Spoiler Tags
+
+        TagBlacklist.processTags(flags, tags)
 
         metadata.genres = tags
 
