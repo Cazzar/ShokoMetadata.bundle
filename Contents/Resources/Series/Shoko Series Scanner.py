@@ -76,9 +76,10 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
 
         episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(os.path.basename(file))))
         if len(episode_data) == 0: break
+        if (try_get(episode_data, "code", 200) == 404): break
 
         series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
-        showTitle = str(series_data['name']) #no idea why I need to do this.
+        showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
         log('Scan', 'show title: %s', showTitle)
 
         seasonNumber = 0
@@ -103,7 +104,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
 
         log('Scan', 'episode number: %s', episodeNumber)
 
-        episodeTitle = str(episode_data['name'])
+        episodeTitle = episode_data['name'].encode("utf-8")
         log('Scan', 'episode title: %s', episodeTitle)
 
         vid = Media.Episode(showTitle, int(seasonNumber), episodeNumber , episodeTitle, int(seasonYear))
