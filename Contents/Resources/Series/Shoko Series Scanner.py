@@ -76,17 +76,19 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
 
         episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(os.path.basename(file))))
         if len(episode_data) == 0: break
+        if (try_get(episode_data, "code", 200) == 404): break
 
         series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
-        showTitle = str(series_data['name']) #no idea why I need to do this.
+        showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
         log('Scan', 'show title: %s', showTitle)
 
         seasonNumber = 0
-        if episode_data['season'] == None:
+        seasonStr = try_get(episode_data, 'season', None)
+        if seasonStr == None:
             if episode_data['eptype'] == 'Episode': seasonNumber = 1
             if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
         else:
-            seasonNumber = episode_data['season'].split('x')[0]
+            seasonNumber = seasonStr.split('x')[0]
 
         if seasonNumber <= 0 and Prefs['IncludeOther'] == False: break #Ignore this by choice.
             
@@ -102,7 +104,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
 
         log('Scan', 'episode number: %s', episodeNumber)
 
-        episodeTitle = str(episode_data['name'])
+        episodeTitle = episode_data['name'].encode("utf-8")
         log('Scan', 'episode title: %s', episodeTitle)
 
         vid = Media.Episode(showTitle, int(seasonNumber), episodeNumber , episodeTitle, int(seasonYear))
@@ -113,3 +115,10 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
     log('Scan', 'stack media')
     Stack.Scan(path, files, mediaList, subdirs)
     log('Scan', 'media list %s', mediaList)
+
+
+def try_get(arr, idx, default=""):
+    try:
+        return arr[idx]
+    except:
+        return default

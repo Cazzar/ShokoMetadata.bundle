@@ -1,7 +1,7 @@
 import os, re, time, string, thread, threading, urllib, copy
 from lxml import etree
 from datetime import datetime
-import TagBlacklist
+import tags as TagBlacklist
 
 API_KEY = ''
 PLEX_HOST = ''
@@ -74,7 +74,7 @@ class ShokoCommonAgent:
         series = HttpReq("api/serie?id=%s&level=3" % aid)
 
         # build metadata on the TV show.
-        metadata.summary = series['summary']
+        metadata.summary = try_get(series, 'summary')
         metadata.title = series['name']
         metadata.rating = float(series['rating'])
 
@@ -82,7 +82,14 @@ class ShokoCommonAgent:
         for tag in series['tags']:
             tags.append(tag['tag'])
 
-        TagBlacklist.processTags(tags)
+        flags = 0
+        flags = flags | Prefs['hideMiscTags']       << 0 #0b00001 : Hide AniDB Internal Tags
+        flags = flags | Prefs['hideArtTags']        << 1 #0b00010 : Hide Art Style Tags
+        flags = flags | Prefs['hideSourceTags']     << 2 #0b00100 : Hide Source Work Tags
+        flags = flags | Prefs['hideUsefulMiscTags'] << 3 #0b01000 : Hide Useful Miscellaneous Tags
+        flags = flags | Prefs['hideSpoilerTags']    << 4 #0b10000 : Hide Plot Spoiler Tags
+
+        TagBlacklist.processTags(flags, tags)
 
         metadata.genres = tags
 
@@ -125,10 +132,6 @@ class ShokoCommonAgent:
 
             Log('Assumed tv rating to be: %s' % metadata.content_rating)
 
-        for t in series['titles']:
-            if (t['type'] == 'official' and t['language'] == 'ja'):
-                metadata.original_title = t['title']
-
 
         if not movie:
             for ep in series['eps']:
@@ -153,11 +156,11 @@ class ShokoCommonAgent:
                         episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
 
 
-def try_to_remove(arr, val):
+def try_get(arr, idx, default=""):
     try:
-        arr.remove(val)
+        return arr[idx]
     except:
-        pass
+        return default
 
 
 class ShokoTVAgent(Agent.TV_Shows, ShokoCommonAgent):
