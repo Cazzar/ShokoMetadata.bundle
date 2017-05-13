@@ -93,17 +93,9 @@ class ShokoCommonAgent:
 
         metadata.genres = tags
 
-        if len(series['art']['banner']):
-            for art in series['art']['banner']:
-                metadata.banner[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
-
-        if len(series['art']['thumb']):
-            for art in series['art']['thumb']:
-                metadata.posters[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
-
-        if len(series['art']['fanart']):
-            for art in series['art']['fanart']:
-                metadata.art[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+        self.metadata_add(metadata.banner, series['art']['banner'])
+        self.metadata_add(metadata.posters, series['art']['thumb'])
+        self.metadata_add(metadata.art, series['art']['fanart'])
 
         ### Generate general content ratings.
         ### VERY rough approximation to: https://www.healthychildren.org/English/family-life/Media/Pages/TV-Ratings-A-Guide-for-Parents.aspx
@@ -155,6 +147,35 @@ class ShokoCommonAgent:
                     for art in series['art']['thumb']:
                         episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
 
+    def metadata_add(self, meta, images):
+        valid = list()
+        
+        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
+        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
+        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
+        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
+
+        for key in meta.keys():
+            Log("DEBUG :: [metadata_add] :: Current key found: %s" % key)
+
+        for art in images:
+            if (art not in meta):
+                Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
+                meta[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+                valid.append(art['url'])
+
+        meta.validate_keys(valid)
+
+        for key in meta.keys():
+            Log("DEBUG :: [metadata_add] :: Current key found: %s" % key)
+            if (key not in valid):
+                del meta[key]
+                Log("DEBUG :: [metadata_add] :: deleting key: %s" % key)
+
+        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
+        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
+        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
+        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
 
 def try_get(arr, idx, default=""):
     try:
