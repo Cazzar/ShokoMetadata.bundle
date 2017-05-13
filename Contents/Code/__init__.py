@@ -93,7 +93,7 @@ class ShokoCommonAgent:
 
         metadata.genres = tags
 
-        self.metadata_add(metadata.banner, series['art']['banner'])
+        self.metadata_add(metadata.banners, series['art']['banner'])
         self.metadata_add(metadata.posters, series['art']['thumb'])
         self.metadata_add(metadata.art, series['art']['fanart'])
 
