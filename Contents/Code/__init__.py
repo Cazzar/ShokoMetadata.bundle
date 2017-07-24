@@ -1,6 +1,13 @@
-import os, re, time, string, thread, threading, urllib, copy
-from lxml import etree
+import os
+import re
+import time
+import string
+import thread
+import threading
+import urllib
+import copy
 from datetime import datetime
+from lxml import etree
 import tags as TagBlacklist
 
 API_KEY = ''
@@ -71,7 +78,7 @@ class ShokoCommonAgent:
         # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
 
         # episode_data = HttpReq("api/ep/getbyfilename?apikey=%s&filename=%s" % (GetApiKey(), urllib.quote(media.filename)))
-        series = HttpReq("api/serie?id=%s&level=3" % aid)
+        series = HttpReq("api/serie?id=%s&level=3&allpics=1" % aid)
 
         # build metadata on the TV show.
         metadata.summary = try_get(series, 'summary')
@@ -150,32 +157,16 @@ class ShokoCommonAgent:
     def metadata_add(self, meta, images):
         valid = list()
         
-        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
-        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
-        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
-        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
-
-        for key in meta.keys():
-            Log("DEBUG :: [metadata_add] :: Current key found: %s" % key)
-
         for art in images:
-            if (art not in meta):
-                Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
-                meta[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
-                valid.append(art['url'])
+            Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
+            meta[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+            valid.append(art['url'])
 
         meta.validate_keys(valid)
 
         for key in meta.keys():
-            Log("DEBUG :: [metadata_add] :: Current key found: %s" % key)
             if (key not in valid):
                 del meta[key]
-                Log("DEBUG :: [metadata_add] :: deleting key: %s" % key)
-
-        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
-        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
-        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
-        Log.Debug("DEBUG :: [metadata_add] :: BLOCKING OUT")
 
 def try_get(arr, idx, default=""):
     try:
