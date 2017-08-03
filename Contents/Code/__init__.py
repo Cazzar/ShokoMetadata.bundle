@@ -95,15 +95,15 @@ class ShokoCommonAgent:
 
         if len(series['art']['banner']):
             for art in series['art']['banner']:
-                metadata.banner[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+                metadata.banner[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
 
         if len(series['art']['thumb']):
             for art in series['art']['thumb']:
-                metadata.posters[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+                metadata.posters[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
 
         if len(series['art']['fanart']):
             for art in series['art']['fanart']:
-                metadata.art[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+                metadata.art[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
 
         ### Generate general content ratings.
         ### VERY rough approximation to: https://www.healthychildren.org/English/family-life/Media/Pages/TV-Ratings-A-Guide-for-Parents.aspx
