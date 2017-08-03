@@ -153,7 +153,7 @@ class ShokoCommonAgent:
 
                 if len(series['art']['thumb']):
                     for art in series['art']['thumb']:
-                        episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+                        episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
 
 
 def try_get(arr, idx, default=""):
