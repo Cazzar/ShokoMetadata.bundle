@@ -152,14 +152,14 @@ class ShokoCommonAgent:
 
                 if len(series['art']['thumb']):
                     for art in series['art']['thumb']:
-                        episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+                        episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
 
     def metadata_add(self, meta, images):
         valid = list()
         
         for art in images:
             Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
-            meta[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+            meta[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
             valid.append(art['url'])
 
         meta.validate_keys(valid)
