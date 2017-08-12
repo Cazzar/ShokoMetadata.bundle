@@ -134,7 +134,7 @@ class ShokoCommonAgent:
 
         if not movie:
             for ep in series['eps']:
-                if ep['eptype'] != 1:
+                if ep['eptype'] != "Episode":
                     continue
 
                 season = 1
@@ -147,7 +147,7 @@ class ShokoCommonAgent:
                 episodeObj.title = ep['name']
                 episodeObj.summary = ep['summary']
 
-                if ep['air'] != '1/01/0001 12:00:00 AM':
+                if ep['air'] != '1/01/0001 12:00:00 AM' and ep['air'] != '0001-01-01':
                     episodeObj.originally_available_at = datetime.strptime(ep['air'], "%d/%m/%Y %H:%M:%S %p").date()
 
                 if len(series['art']['thumb']):
