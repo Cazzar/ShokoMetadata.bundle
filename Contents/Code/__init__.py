@@ -150,7 +150,7 @@ class ShokoCommonAgent:
                 if ep['air'] != '1/01/0001 12:00:00 AM' and ep['air'] != '0001-01-01':
                     episodeObj.originally_available_at = datetime.strptime(ep['air'], "%d/%m/%Y %H:%M:%S %p").date()
 
-                if len(series['art']['thumb']):
+                if len(series['art']['thumb']) and Prefs['customThumbs']:
                     for art in series['art']['thumb']:
                         episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
 

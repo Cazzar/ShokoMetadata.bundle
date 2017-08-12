@@ -74,5 +74,12 @@
         "label": "Hide any miscellaneous tags.",
         "type": "bool",
         "default": true
+    },
+
+    {
+        "id": "customThumbs",
+        "label": "Use shoko's thumbnails",
+        "type": "bool",
+        "default": false
     }
 ]
