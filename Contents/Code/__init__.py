@@ -154,6 +154,10 @@ class ShokoCommonAgent:
                     for art in series['art']['thumb']:
                         episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
 
+            links = HttpReq("api/links/serie?id=%d" % aid)
+            for tvdbid in links["tvdb"]:
+                metadata.themes[tvdbid] = Proxy.Media("http://tvthemes.plexapp.com/{tvdb}.mp3".format(tvdb=tvdbid))
+
     def metadata_add(self, meta, images):
         valid = list()
         
