@@ -161,13 +161,14 @@ class ShokoCommonAgent:
             links = HttpReq("api/links/serie?id=%s" % aid)
 
             #adapted from: https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/fb5c77a60c925dcfd60e75a945244e07ee009e7c/Contents/Code/__init__.py#L41-L45
-            for tid in links["tvdb"]:
-                if THEME_URL % tid not in metadata.themes:
-                    try:
-                        metadata.themes[THEME_URL % tid] = Proxy.Media(HTTP.Request(THEME_URL % tid))
-                        Log("added: %s" % THEME_URL % tid)
-                    except:
-                        Log("error adding music, probably not found")
+            if Prefs["themeMusic"]:
+                for tid in links["tvdb"]:
+                    if THEME_URL % tid not in metadata.themes:
+                        try:
+                            metadata.themes[THEME_URL % tid] = Proxy.Media(HTTP.Request(THEME_URL % tid))
+                            Log("added: %s" % THEME_URL % tid)
+                        except:
+                            Log("error adding music, probably not found")
 
     def metadata_add(self, meta, images):
         valid = list()

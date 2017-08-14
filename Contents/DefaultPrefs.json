@@ -81,5 +81,12 @@
         "label": "Use shoko's thumbnails",
         "type": "bool",
         "default": false
+    },
+
+    {
+        "id": "themeMusic",
+        "label": "Grab theme music the same way plex theme music would",
+        "type": "bool",
+        "default": true
     }
 ]
