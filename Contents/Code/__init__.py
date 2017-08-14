@@ -21,6 +21,7 @@ def ValidatePrefs():
 def Start():
     Log("Shoko metata agent started")
     HTTP.Headers['Accept'] = 'application/json'
+    HTTP.CacheTime = 0 #cache, can you please go away, typically we will be requesting LOCALLY. HTTP.CacheTime
     ValidatePrefs()
 
 
