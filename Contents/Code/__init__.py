@@ -13,6 +13,9 @@ import tags as TagBlacklist
 API_KEY = ''
 PLEX_HOST = ''
 
+#this is from https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/master/Contents/Code/__init__.py
+THEME_URL = 'http://tvthemes.plexapp.com/%s.mp3'
+
 
 def ValidatePrefs():
     pass
@@ -156,8 +159,15 @@ class ShokoCommonAgent:
                         episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
 
             links = HttpReq("api/links/serie?id=%s" % aid)
-            for tvdbid in links["tvdb"]:
-                metadata.themes[tvdbid] = Proxy.Media("http://tvthemes.plexapp.com/{tvdb}.mp3".format(tvdb=tvdbid))
+
+            #adapted from: https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/fb5c77a60c925dcfd60e75a945244e07ee009e7c/Contents/Code/__init__.py#L41-L45
+            for tid in links["tvdb"]:
+                if THEME_URL % tid not in metadata.themes:
+                    try:
+                        metadata.themes[THEME_URL % tid] = Proxy.Media(HTTP.Request(THEME_URL % tid))
+                        Log("added: %s" % THEME_URL % tid)
+                    except:
+                        Log("error adding music, probably not found")
 
     def metadata_add(self, meta, images):
         valid = list()
