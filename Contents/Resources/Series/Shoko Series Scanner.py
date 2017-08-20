@@ -85,61 +85,58 @@ def GetApiKey():
 
 
 def Scan(path, files, mediaList, subdirs, language=None, root=None):
-    Log.debug('path: %s', path)
-    Log.debug('files: %s', files)
-    Log.debug('mediaList: %s', mediaList)
-    Log.debug('subdirs: %s', subdirs)
-    Log.debug('language: %s', language)
-    Log.info('root: %s', root)
-    
-    # Scan for video files.
-    VideoFiles.Scan(path, files, mediaList, subdirs, root)
-    
-    for idx, file in enumerate(files):
-        Log.info('file: %s', file)
-        # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
+    try:
+        Log.debug('path: %s', path)
+        Log.debug('files: %s', files)
+        Log.debug('mediaList: %s', mediaList)
+        Log.debug('subdirs: %s', subdirs)
+        Log.debug('language: %s', language)
+        Log.info('root: %s', root)
+        
+        # Scan for video files.
+        VideoFiles.Scan(path, files, mediaList, subdirs, root)
+        
+        for idx, file in enumerate(files):
+            Log.info('file: %s', file)
+            # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
 
-        episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(os.path.basename(file))))
-        if len(episode_data) == 0: break
-        if (try_get(episode_data, "code", 200) == 404): break
+            episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(os.path.basename(file))))
+            if len(episode_data) == 0: break
+            if (try_get(episode_data, "code", 200) == 404): break
 
-        series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
-        showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
-        Log.info('show title: %s', showTitle)
+            series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
+            showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
+            Log.info('show title: %s', showTitle)
 
-        seasonNumber = 0
-        seasonStr = try_get(episode_data, 'season', None)
-        if seasonStr == None:
-            if episode_data['eptype'] == 'Episode': seasonNumber = 1
-            if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
-        else:
-            seasonNumber = seasonStr.split('x')[0]
+            seasonNumber = 0
+            seasonStr = try_get(episode_data, 'season', None)
+            if seasonStr == None:
+                if episode_data['eptype'] == 'Episode': seasonNumber = 1
+                if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
+            else:
+                seasonNumber = seasonStr.split('x')[0]
 
-        if seasonNumber <= 0 and Prefs['IncludeOther'] == False: break #Ignore this by choice.
-            
+            if seasonNumber <= 0 and Prefs['IncludeOther'] == False: break #Ignore this by choice.
+                
 
-        Log.info('season number: %s', seasonNumber)
+            Log.info('season number: %s', seasonNumber)
 
-        seasonYear = try_get(episode_data, 'year', 0)
-        Log.info('season year: %s', seasonYear)
+            episodeNumber = int(episode_data['epnumber'])
+            if episode_data['eptype'] != 'Episode':
+                episodeNumber = str("%s%d" % (episode_data['eptype'][0], episode_data['epnumber']))
 
-        episodeNumber = int(episode_data['epnumber'])
-        if episode_data['eptype'] != 'Episode':
-            episodeNumber = str("%s%d" % (episode_data['eptype'][0], episode_data['epnumber']))
+            Log.info('episode number: %s', episodeNumber)
 
-        Log.info('episode number: %s', episodeNumber)
-
-        episodeTitle = episode_data['name'].encode("utf-8")
-        Log.info('episode title: %s', episodeTitle)
-
-        vid = Media.Episode(showTitle, int(seasonNumber), episodeNumber , episodeTitle, int(seasonYear))
-        Log.info('vid: %s', vid)
-        vid.parts.append(file)
-        mediaList.append(vid)
-    
-    Log.info('stack media')
-    Stack.Scan(path, files, mediaList, subdirs)
-    Log.debug('media list %s', mediaList)
+            vid = Media.Episode(showTitle, int(seasonNumber), episodeNumber)
+            Log.info('vid: %s', vid)
+            vid.parts.append(file)
+            mediaList.append(vid)
+        
+        Log.info('stack media')
+        Stack.Scan(path, files, mediaList, subdirs)
+        Log.debug('media list %s', mediaList)
+    except Exception as e:
+        Log.error("Error in Scan: '%s'" % e)
 
 
 def try_get(arr, idx, default=""):
