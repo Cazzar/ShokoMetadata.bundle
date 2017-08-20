@@ -13,6 +13,6 @@ Naming episodes/series works best with [This format](https://support.plex.tv/hc/
 
 # Plans
 
-I do plan to in the long term to add things such as scrobbling to this plugin
+~~I do plan to in the long term to add things such as scrobbling to this plugin~~ - This has been added to Shoko, via webhooks
 
-Another future plan is in regards to syncing watched status between shoko and plex.
+~~Another future plan is in regards to syncing watched status between shoko and plex.~~ - This can be done inside shoko. via webhook or manual plex linking.

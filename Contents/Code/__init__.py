@@ -1,10 +1,20 @@
-import os, re, time, string, thread, threading, urllib, copy
-from lxml import etree
+import os
+import re
+import time
+import string
+import thread
+import threading
+import urllib
+import copy
 from datetime import datetime
+from lxml import etree
 import tags as TagBlacklist
 
 API_KEY = ''
 PLEX_HOST = ''
+
+#this is from https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/master/Contents/Code/__init__.py
+THEME_URL = 'http://tvthemes.plexapp.com/%s.mp3'
 
 
 def ValidatePrefs():
@@ -14,6 +24,7 @@ def ValidatePrefs():
 def Start():
     Log("Shoko metata agent started")
     HTTP.Headers['Accept'] = 'application/json'
+    HTTP.CacheTime = 0 #cache, can you please go away, typically we will be requesting LOCALLY. HTTP.CacheTime
     ValidatePrefs()
 
 
@@ -71,7 +82,7 @@ class ShokoCommonAgent:
         # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
 
         # episode_data = HttpReq("api/ep/getbyfilename?apikey=%s&filename=%s" % (GetApiKey(), urllib.quote(media.filename)))
-        series = HttpReq("api/serie?id=%s&level=3" % aid)
+        series = HttpReq("api/serie?id=%s&level=3&allpics=1" % aid)
 
         # build metadata on the TV show.
         metadata.summary = try_get(series, 'summary')
@@ -93,17 +104,9 @@ class ShokoCommonAgent:
 
         metadata.genres = tags
 
-        if len(series['art']['banner']):
-            for art in series['art']['banner']:
-                metadata.banner[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
-
-        if len(series['art']['thumb']):
-            for art in series['art']['thumb']:
-                metadata.posters[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
-
-        if len(series['art']['fanart']):
-            for art in series['art']['fanart']:
-                metadata.art[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+        self.metadata_add(metadata.banners, series['art']['banner'])
+        self.metadata_add(metadata.posters, series['art']['thumb'])
+        self.metadata_add(metadata.art, series['art']['fanart'])
 
         ### Generate general content ratings.
         ### VERY rough approximation to: https://www.healthychildren.org/English/family-life/Media/Pages/TV-Ratings-A-Guide-for-Parents.aspx
@@ -135,7 +138,7 @@ class ShokoCommonAgent:
 
         if not movie:
             for ep in series['eps']:
-                if ep['eptype'] != 1:
+                if ep['eptype'] != "Episode":
                     continue
 
                 season = 1
@@ -148,13 +151,38 @@ class ShokoCommonAgent:
                 episodeObj.title = ep['name']
                 episodeObj.summary = ep['summary']
 
-                if ep['air'] != '1/01/0001 12:00:00 AM':
+                if ep['air'] != '1/01/0001 12:00:00 AM' and ep['air'] != '0001-01-01':
                     episodeObj.originally_available_at = datetime.strptime(ep['air'], "%d/%m/%Y %H:%M:%S %p").date()
 
-                if len(series['art']['thumb']):
+                if len(series['art']['thumb']) and Prefs['customThumbs']:
                     for art in series['art']['thumb']:
-                        episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request(art['url']).content, art['index'])
+                        episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
 
+            links = HttpReq("api/links/serie?id=%s" % aid)
+
+            #adapted from: https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/fb5c77a60c925dcfd60e75a945244e07ee009e7c/Contents/Code/__init__.py#L41-L45
+            if Prefs["themeMusic"]:
+                for tid in links["tvdb"]:
+                    if THEME_URL % tid not in metadata.themes:
+                        try:
+                            metadata.themes[THEME_URL % tid] = Proxy.Media(HTTP.Request(THEME_URL % tid))
+                            Log("added: %s" % THEME_URL % tid)
+                        except:
+                            Log("error adding music, probably not found")
+
+    def metadata_add(self, meta, images):
+        valid = list()
+        
+        for art in images:
+            Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
+            meta[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
+            valid.append(art['url'])
+
+        meta.validate_keys(valid)
+
+        for key in meta.keys():
+            if (key not in valid):
+                del meta[key]
 
 def try_get(arr, idx, default=""):
     try:
