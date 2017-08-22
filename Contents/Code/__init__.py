@@ -156,6 +156,9 @@ class ShokoCommonAgent:
 
                 if len(series['art']['thumb']) and Prefs['customThumbs']:
                     for art in series['art']['thumb']:
+                        if ':' in art['url']:
+                            urlparts = urllib.parse.urlparse(art['url'])
+                            art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
                         episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
 
             links = HttpReq("api/links/serie?id=%s" % aid)
@@ -174,6 +177,9 @@ class ShokoCommonAgent:
         valid = list()
         
         for art in images:
+            if ':' in art['url']:
+                urlparts = urllib.parse.urlparse(art['url'])
+                art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
             Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
             meta[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
             valid.append(art['url'])
