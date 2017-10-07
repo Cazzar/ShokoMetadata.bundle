@@ -135,6 +135,8 @@ class ShokoCommonAgent:
 
             Log('Assumed tv rating to be: %s' % metadata.content_rating)
 
+        if series['air'] != '1/01/0001 12:00:00 AM' and series['air'] != '0001-01-01':
+            metadata.originally_available_at = datetime.strptime(series['air'], "%Y-%m-%d").date()
 
         if not movie:
             for ep in series['eps']:
@@ -152,7 +154,7 @@ class ShokoCommonAgent:
                 episodeObj.summary = ep['summary']
 
                 if ep['air'] != '1/01/0001 12:00:00 AM' and ep['air'] != '0001-01-01':
-                    episodeObj.originally_available_at = datetime.strptime(ep['air'], "%d/%m/%Y %H:%M:%S %p").date()
+                    episodeObj.originally_available_at = datetime.strptime(ep['air'], "%Y-%m-%d").date()
 
                 if len(series['art']['thumb']) and Prefs['customThumbs']:
                     for art in series['art']['thumb']:
