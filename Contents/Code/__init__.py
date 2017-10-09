@@ -55,8 +55,14 @@ def HttpReq(url, authenticate=True):
     if authenticate:
         api_string = '&apikey=%s' % GetApiKey()
 
-    return JSON.ObjectFromString(
-        HTTP.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, api_string)).content)
+    try:
+        return JSON.ObjectFromString(
+            HTTP.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, api_string)).content)
+    except urllib.error.HTTPError, e:
+        if e.code == 401:
+            API_KEY = ''
+            return HttpReq(url, authenticate)
+        raise e
 
 
 class ShokoCommonAgent:
