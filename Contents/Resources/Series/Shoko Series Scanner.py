@@ -120,11 +120,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 
 
             Log.info('season number: %s', seasonNumber)
-
             episodeNumber = int(episode_data['epnumber'])
-            if episode_data['eptype'] != 'Episode':
-                episodeNumber = str("%s%d" % (episode_data['eptype'][0], episode_data['epnumber']))
-
             Log.info('episode number: %s', episodeNumber)
 
             vid = Media.Episode(showTitle, int(seasonNumber), episodeNumber)
