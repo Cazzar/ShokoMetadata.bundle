@@ -6,6 +6,7 @@ import thread
 import threading
 import urllib
 import copy
+from urllib2 import HTTPError
 from datetime import datetime
 from lxml import etree
 import tags as TagBlacklist
@@ -49,7 +50,7 @@ def HttpPost(url, postdata):
                      data=postdata).content)
 
 
-def HttpReq(url, authenticate=True):
+def HttpReq(url, authenticate=True, retry=True):
     Log("Requesting: %s" % url)
     api_string = ''
     if authenticate:
@@ -58,11 +59,13 @@ def HttpReq(url, authenticate=True):
     try:
         return JSON.ObjectFromString(
             HTTP.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, api_string)).content)
-    except urllib.error.HTTPError, e:
-        if e.code == 401:
-            API_KEY = ''
-            return HttpReq(url, authenticate)
-        raise e
+    except HTTPError, e:
+        if not retry:
+            raise e
+
+        API_KEY = ''
+        return HttpReq(url, authenticate, False)
+        
 
 
 class ShokoCommonAgent:
