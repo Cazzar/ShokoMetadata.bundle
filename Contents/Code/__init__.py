@@ -51,6 +51,7 @@ def HttpPost(url, postdata):
 
 
 def HttpReq(url, authenticate=True, retry=True):
+    global API_KEY
     Log("Requesting: %s" % url)
     api_string = ''
     if authenticate:
@@ -59,7 +60,7 @@ def HttpReq(url, authenticate=True, retry=True):
     try:
         return JSON.ObjectFromString(
             HTTP.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, api_string)).content)
-    except HTTPError, e:
+    except Exception, e:
         if not retry:
             raise e
 

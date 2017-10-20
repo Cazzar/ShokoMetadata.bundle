@@ -58,7 +58,8 @@ def HttpPost(url, postdata):
     return json.load(urllib2.urlopen(req, postdata))
 
 
-def HttpReq(url, authenticate=True):
+def HttpReq(url, authenticate=True, retry=True):
+    global API_KEY
     Log.info("Requesting: %s", url)
     api_string = ''
     if authenticate:
@@ -66,8 +67,15 @@ def HttpReq(url, authenticate=True):
 
     myheaders = {'Accept': 'application/json'}
     
-    req = urllib2.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, api_string), headers=myheaders)
-    return json.load(urllib2.urlopen(req))
+    try:
+        req = urllib2.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, api_string), headers=myheaders)
+        return json.load(urllib2.urlopen(req))
+    except Exception, e:
+        if not retry:
+            raise e
+
+        API_KEY = ''
+        return HttpReq(url, authenticate, False)
 
 
 def GetApiKey():
