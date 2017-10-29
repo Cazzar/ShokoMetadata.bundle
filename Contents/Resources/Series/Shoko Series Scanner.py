@@ -113,7 +113,8 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
             if (try_get(episode_data, "code", 200) == 404): continue
 
             series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
-            if (series_data["ismovie"] == 1) continue # Ignore movies in preference for Shoko Movie Scanner
+            if (series_data["ismovie"] == 1):
+                continue # Ignore movies in preference for Shoko Movie Scanner
             showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
             Log.info('show title: %s', showTitle)
 
