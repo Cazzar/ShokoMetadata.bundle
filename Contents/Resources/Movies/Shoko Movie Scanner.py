@@ -4,7 +4,7 @@ import Media, VideoFiles, Stack, Utils
 import urllib2, urllib
 
 Prefs = {
-    'Hostname': '192.168.1.3',
+    'Hostname': '127.0.0.1',
     'Port': 8111,
     'Username': 'Default',
     'Password': '',
