@@ -58,8 +58,7 @@ def HttpPost(url, postdata):
     return json.load(urllib2.urlopen(req, postdata))
 
 
-def HttpReq(url, authenticate=True, retry=True):
-    global API_KEY
+def HttpReq(url, authenticate=True):
     Log.info("Requesting: %s", url)
     api_string = ''
     if authenticate:
@@ -67,15 +66,8 @@ def HttpReq(url, authenticate=True, retry=True):
 
     myheaders = {'Accept': 'application/json'}
     
-    try:
-        req = urllib2.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, api_string), headers=myheaders)
-        return json.load(urllib2.urlopen(req))
-    except Exception, e:
-        if not retry:
-            raise e
-
-        API_KEY = ''
-        return HttpReq(url, authenticate, False)
+    req = urllib2.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, api_string), headers=myheaders)
+    return json.load(urllib2.urlopen(req))
 
 
 def GetApiKey():
@@ -113,7 +105,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
             if (try_get(episode_data, "code", 200) == 404): continue
 
             series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
-            if (series_data["ismovie"] == 1) continue # Ignore movies in preference for Shoko Movie Scanner
+            if (series_data["ismovie"] == 0) continue
             showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
             Log.info('show title: %s', showTitle)
 
