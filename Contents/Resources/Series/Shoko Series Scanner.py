@@ -109,12 +109,11 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
             # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
 
             episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(os.path.basename(file))))
-            if len(episode_data) == 0: continue
-            if (try_get(episode_data, "code", 200) == 404): continue
+            if len(episode_data) == 0: break
+            if (try_get(episode_data, "code", 200) == 404): break
 
             series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
-            if (series_data["ismovie"] == 1):
-                continue # Ignore movies in preference for Shoko Movie Scanner
+            if (series_data["ismovie"] == 1) break # Ignore movies in preference for Shoko Movie Scanner
             showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
             Log.info('show title: %s', showTitle)
 
@@ -126,7 +125,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
             else:
                 seasonNumber = seasonStr.split('x')[0]
 
-            if seasonNumber <= 0 and Prefs['IncludeOther'] == False: continue #Ignore this by choice.
+            if seasonNumber <= 0 and Prefs['IncludeOther'] == False: break #Ignore this by choice.
                 
 
             Log.info('season number: %s', seasonNumber)
