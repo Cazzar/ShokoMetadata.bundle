@@ -82,7 +82,7 @@ def GetApiKey():
     global API_KEY
 
     if not API_KEY:
-                data = '{"user":"%s", "pass":"%s", "device":"%s"}' % (
+        data = '{"user":"%s", "pass":"%s", "device":"%s"}' % (
             Prefs['Username'], Prefs['Password'] if Prefs['Password'] != None else '', 'Shoko Series Scanner For Plex')
         resp = HttpPost('api/auth', data)['apikey']
         Log.info( "Got API KEY: %s", resp)
