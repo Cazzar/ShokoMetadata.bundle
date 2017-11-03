@@ -109,8 +109,8 @@ class ShokoCommonAgent:
         metadata.rating = float(series['rating'])
         year = try_get(series, "year", None)
 
-        if year:
-            metadata.year = int(year)
+        #if year:
+        #    metadata.year = int(year)
 
         tags = []
         for tag in series['tags']:
