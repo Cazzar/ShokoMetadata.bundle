@@ -114,7 +114,7 @@ class ShokoCommonAgent:
 
         tags = []
         for tag in series['tags']:
-            tags.append(tag['tag'])
+            tags.append(tag)
 
         metadata.genres = tags
 
