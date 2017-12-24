@@ -163,12 +163,14 @@ class ShokoCommonAgent:
 
         if not movie:
             for ep in series['eps']:
-                if ep['eptype'] != "Episode":
+                if ep['eptype'] != "Episode" and ep['eptype'] != "Special":
                     continue
 
-                season = 1
+                if ep['eptype'] == "Episode": season = 1
+                elif ep['eptype'] == "Special": season = 0
                 try:
                     season = int(ep['season'].split('x')[0])
+                    if season <= 0 and ep['eptype'] == 'Episode': season = 1
                 except:
                     pass
 
