@@ -6,9 +6,9 @@ import thread
 import threading
 import urllib
 import copy
+from urllib2 import HTTPError
 from datetime import datetime
 from lxml import etree
-import tags as TagBlacklist
 
 API_KEY = ''
 PLEX_HOST = ''
@@ -49,19 +49,28 @@ def HttpPost(url, postdata):
                      data=postdata).content)
 
 
-def HttpReq(url, authenticate=True):
+def HttpReq(url, authenticate=True, retry=True):
+    global API_KEY
     Log("Requesting: %s" % url)
     api_string = ''
     if authenticate:
         api_string = '&apikey=%s' % GetApiKey()
 
-    return JSON.ObjectFromString(
-        HTTP.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, api_string)).content)
+    try:
+        return JSON.ObjectFromString(
+            HTTP.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, api_string)).content)
+    except Exception, e:
+        if not retry:
+            raise e
+
+        API_KEY = ''
+        return HttpReq(url, authenticate, False)
+        
 
 
 class ShokoCommonAgent:
     def Search(self, results, media, lang, manual, movie):
-        name = media.show
+        name = ( media.title if movie else media.show )
 
         # http://127.0.0.1:8111/api/serie/search?query=Clannad&level=1&apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579
 
@@ -82,16 +91,7 @@ class ShokoCommonAgent:
         # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
 
         # episode_data = HttpReq("api/ep/getbyfilename?apikey=%s&filename=%s" % (GetApiKey(), urllib.quote(media.filename)))
-        series = HttpReq("api/serie?id=%s&level=3&allpics=1" % aid)
 
-        # build metadata on the TV show.
-        metadata.summary = try_get(series, 'summary')
-        metadata.title = series['name']
-        metadata.rating = float(series['rating'])
-
-        tags = []
-        for tag in series['tags']:
-            tags.append(tag['tag'])
 
         flags = 0
         flags = flags | Prefs['hideMiscTags']       << 0 #0b00001 : Hide AniDB Internal Tags
@@ -100,7 +100,21 @@ class ShokoCommonAgent:
         flags = flags | Prefs['hideUsefulMiscTags'] << 3 #0b01000 : Hide Useful Miscellaneous Tags
         flags = flags | Prefs['hideSpoilerTags']    << 4 #0b10000 : Hide Plot Spoiler Tags
 
-        TagBlacklist.processTags(flags, tags)
+
+        series = HttpReq("api/serie?id=%s&level=3&allpics=1&tagfilter=%d" % (aid, flags))
+
+        # build metadata on the TV show.
+        metadata.summary = try_get(series, 'summary')
+        metadata.title = series['name']
+        metadata.rating = float(series['rating'])
+        year = try_get(series, "year", None)
+
+        #if year:
+        #    metadata.year = int(year)
+
+        tags = []
+        for tag in series['tags']:
+            tags.append(tag)
 
         metadata.genres = tags
 
@@ -135,6 +149,17 @@ class ShokoCommonAgent:
 
             Log('Assumed tv rating to be: %s' % metadata.content_rating)
 
+        if series['air'] != '1/01/0001 12:00:00 AM' and series['air'] != '0001-01-01':
+            metadata.originally_available_at = datetime.strptime(series['air'], "%Y-%m-%d").date()
+
+        metadata.roles.clear()
+        for role in series['roles']:    
+            meta_role = metadata.roles.new()
+            Log(role['character'])
+            meta_role.name = role['staff']
+            meta_role.role = role['character']
+            meta_role.photo = "http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=role['staff_image'])
+
 
         if not movie:
             for ep in series['eps']:
@@ -152,10 +177,13 @@ class ShokoCommonAgent:
                 episodeObj.summary = ep['summary']
 
                 if ep['air'] != '1/01/0001 12:00:00 AM' and ep['air'] != '0001-01-01':
-                    episodeObj.originally_available_at = datetime.strptime(ep['air'], "%d/%m/%Y %H:%M:%S %p").date()
+                    episodeObj.originally_available_at = datetime.strptime(ep['air'], "%Y-%m-%d").date()
 
                 if len(series['art']['thumb']) and Prefs['customThumbs']:
                     for art in series['art']['thumb']:
+                        if ':' in art['url']:
+                            urlparts = urllib.parse.urlparse(art['url'])
+                            art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
                         episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
 
             links = HttpReq("api/links/serie?id=%s" % aid)
@@ -174,6 +202,9 @@ class ShokoCommonAgent:
         valid = list()
         
         for art in images:
+            if ':' in art['url']:
+                urlparts = urllib.parse.urlparse(art['url'])
+                art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
             Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
             meta[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
             valid.append(art['url'])
