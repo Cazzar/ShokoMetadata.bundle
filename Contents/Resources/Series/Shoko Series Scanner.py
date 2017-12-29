@@ -126,6 +126,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
             else:
                 seasonNumber = int(seasonStr.split('x')[0])
                 if seasonNumber <= 0 and episode_data['eptype'] == 'Episode': seasonNumber = 1
+                elif seasonNumber > 0 and episode_data['eptype'] == 'Special': seasonNumber = 0
             
             if seasonNumber <= 0 and Prefs['IncludeOther'] == False: continue #Ignore this by choice.
             
