@@ -163,7 +163,7 @@ class ShokoCommonAgent:
 
         if not movie:
             for ep in series['eps']:
-                if ep['eptype'] != "Episode" and ep['eptype'] != "Special" and ep['eptype'] != "Credits" and ep['eptype'] != "Trailer":
+                if ep['eptype'] not in ["Episode", "Special", "Credits", "Trailer"]:
                     continue
 
                 if ep['eptype'] == "Episode": season = 1
@@ -176,7 +176,7 @@ class ShokoCommonAgent:
                     elif season > 0 and ep['eptype'] == 'Special': season = 0
                 except:
                     pass
-                
+
                 episodeObj = metadata.seasons[season].episodes[ep['epnumber']]
                 episodeObj.title = ep['name']
                 episodeObj.summary = ep['summary']
