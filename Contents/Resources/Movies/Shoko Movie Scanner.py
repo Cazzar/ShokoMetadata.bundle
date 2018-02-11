@@ -79,14 +79,26 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
         if (try_get(episode_data, "code", 200) == 404): break
 
         series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
-        if (series_data["ismovie"] == 0):
-            continue 
         showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
         log('Scan', 'show title: %s', showTitle)
 
         seasonYear = episode_data['year']
         log('Scan', 'season year: %s', seasonYear)
-
+        seasonNumber = 0
+        seasonStr = try_get(episode_data, 'season', None)
+        if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
+        elif episode_data['eptype'] == 'Trailer': seasonNumber = -2 #season -2 for Trailer
+        elif seasonStr == None:
+            if episode_data['eptype'] == 'Episode': seasonNumber = 1
+            elif episode_data['eptype'] == 'Special': seasonNumber = 0
+        else:
+            seasonNumber = int(seasonStr.split('x')[0])
+            if seasonNumber <= 0 and episode_data['eptype'] == 'Episode': seasonNumber = 1
+        
+        if seasonNumber <= 0 and Prefs['IncludeOther'] == False: continue #Ignore this by choice.
+        
+        if (series_data["ismovie"] == 0 or seasonNumber <= 0):
+            continue 
         vid = Media.Movie(showTitle, int(seasonYear))
         log('Scan', 'vid: %s', vid)
         vid.parts.append(file)

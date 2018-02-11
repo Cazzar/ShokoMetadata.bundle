@@ -109,30 +109,33 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
             # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
 
             episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(os.path.basename(file))))
-            if len(episode_data) == 0: break
-            if (try_get(episode_data, "code", 200) == 404): break
+            if len(episode_data) == 0: continue
+            if (try_get(episode_data, "code", 200) == 404): continue
 
             series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
-            if (series_data["ismovie"] == 1): break # Ignore movies in preference for Shoko Movie Scanner
             showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
             Log.info('show title: %s', showTitle)
 
             seasonNumber = 0
             seasonStr = try_get(episode_data, 'season', None)
-            if seasonStr == None:
+            if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
+            elif episode_data['eptype'] == 'Trailer': seasonNumber = -2 #season -2 for Trailer
+            elif seasonStr == None:
                 if episode_data['eptype'] == 'Episode': seasonNumber = 1
-                if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
+                elif episode_data['eptype'] == 'Special': seasonNumber = 0
             else:
-                seasonNumber = seasonStr.split('x')[0]
-
-            if seasonNumber <= 0 and Prefs['IncludeOther'] == False: break #Ignore this by choice.
-                
-
+                seasonNumber = int(seasonStr.split('x')[0])
+                if seasonNumber <= 0 and episode_data['eptype'] == 'Episode': seasonNumber = 1
+                elif seasonNumber > 0 and episode_data['eptype'] == 'Special': seasonNumber = 0
+            
+            if seasonNumber <= 0 and Prefs['IncludeOther'] == False: continue #Ignore this by choice.
+            
+            if (series_data["ismovie"] == 1 and seasonNumber >= 1): continue # Ignore movies in preference for Shoko Movie Scanner, but keep specials as Plex sees specials as duplicate
             Log.info('season number: %s', seasonNumber)
             episodeNumber = int(episode_data['epnumber'])
             Log.info('episode number: %s', episodeNumber)
-
-            vid = Media.Episode(showTitle, int(seasonNumber), episodeNumber)
+            
+            vid = Media.Episode(showTitle, seasonNumber, episodeNumber)
             Log.info('vid: %s', vid)
             vid.parts.append(file)
             mediaList.append(vid)

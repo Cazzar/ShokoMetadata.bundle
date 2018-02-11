@@ -74,7 +74,7 @@ class ShokoCommonAgent:
 
         # http://127.0.0.1:8111/api/serie/search?query=Clannad&level=1&apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579
 
-        prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=%d" % (urllib.quote(name), 1, Prefs['Fuzzy']))
+        prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=%d" % (urllib.quote(name.encode('utf8')), 1, Prefs['Fuzzy']))
 
         for result in prelimresults:
             #for result in group['series']:
@@ -163,12 +163,17 @@ class ShokoCommonAgent:
 
         if not movie:
             for ep in series['eps']:
-                if ep['eptype'] != "Episode":
+                if ep['eptype'] not in ["Episode", "Special", "Credits", "Trailer"]:
                     continue
 
-                season = 1
+                if ep['eptype'] == "Episode": season = 1
+                elif ep['eptype'] == "Special": season = 0
+                elif ep['eptype'] == "Credits": season = -1
+                elif ep['eptype'] == "Trailer": season = -2;
                 try:
                     season = int(ep['season'].split('x')[0])
+                    if season <= 0 and ep['eptype'] == 'Episode': season = 1
+                    elif season > 0 and ep['eptype'] == 'Special': season = 0
                 except:
                     pass
 
@@ -236,7 +241,7 @@ class ShokoTVAgent(Agent.TV_Shows, ShokoCommonAgent):
 
 class ShokoMovieAgent(Agent.Movies, ShokoCommonAgent):
     name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = (
-        'ShokoMovies', True, False, ['com.plexapp.agents.hama'], [Locale.Language.English, ],
+        'ShokoMovies', True, False, ['com.plexapp.agents.hama'], [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr'],
         ['com.plexapp.agents.localmedia'])  # , 'com.plexapp.agents.opensubtitles'
 
     def search(self, results, media, lang, manual): self.Search(results, media, lang, manual, True)
