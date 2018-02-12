@@ -175,16 +175,13 @@ class ShokoCommonAgent:
                 episodeObj = metadata.seasons[season].episodes[ep['epnumber']]
                 episodeObj.title = ep['name']
                 episodeObj.summary = ep['summary']
+                Log("" + str(ep['epnumber']) + ": " + ep['summary'])
 
                 if ep['air'] != '1/01/0001 12:00:00 AM' and ep['air'] != '0001-01-01':
                     episodeObj.originally_available_at = datetime.strptime(ep['air'], "%Y-%m-%d").date()
 
-                if len(series['art']['thumb']) and Prefs['customThumbs']:
-                    for art in series['art']['thumb']:
-                        if ':' in art['url']:
-                            urlparts = urllib.parse.urlparse(art['url'])
-                            art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
-                        episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
+                if len(ep['art']['thumb']) and Prefs['customThumbs']:
+                    self.metadata_add(episodeObj.thumbs, ep['art']['thumb'])
 
             links = HttpReq("api/links/serie?id=%s" % aid)
 
@@ -202,6 +199,8 @@ class ShokoCommonAgent:
         valid = list()
         
         for art in images:
+            if 'support/plex_404.png' in art['url']:
+                continue
             if ':' in art['url']:
                 urlparts = urllib.parse.urlparse(art['url'])
                 art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
