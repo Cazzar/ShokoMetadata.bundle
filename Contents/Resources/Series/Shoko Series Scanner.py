@@ -120,19 +120,21 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
             seasonNumber = 0
             seasonStr = try_get(episode_data, 'season', None)
             if seasonStr == None:
+                episodeNumber = episode_data['epnumber']
                 if episode_data['eptype'] == 'Episode': seasonNumber = 1
                 if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
             else:
                 seasonNumber = seasonStr.split('x')[0]
+                episodeNumber = seasonStr.split('x')[1]
 
             if seasonNumber <= 0 and Prefs['IncludeOther'] == False: break #Ignore this by choice.
                 
 
             Log.info('season number: %s', seasonNumber)
-            episodeNumber = int(episode_data['epnumber'])
+            
             Log.info('episode number: %s', episodeNumber)
 
-            vid = Media.Episode(showTitle, int(seasonNumber), episodeNumber)
+            vid = Media.Episode(showTitle, int(seasonNumber), int(episodeNumber))
             Log.info('vid: %s', vid)
             vid.parts.append(file)
             mediaList.append(vid)
