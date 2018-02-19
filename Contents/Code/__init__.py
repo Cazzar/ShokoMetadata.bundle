@@ -122,6 +122,16 @@ class ShokoCommonAgent:
         self.metadata_add(metadata.posters, series['art']['thumb'])
         self.metadata_add(metadata.art, series['art']['fanart'])
 
+        groupinfo = HttpReq("api/serie/groups?id=%s&level=2" % aid);
+        collections = []
+        for group in groupinfo:
+            if (len(group['series']) > 1):
+                collections.append(group['name'])
+
+        metadata.collections = collections
+
+
+
         ### Generate general content ratings.
         ### VERY rough approximation to: https://www.healthychildren.org/English/family-life/Media/Pages/TV-Ratings-A-Guide-for-Parents.aspx
 
