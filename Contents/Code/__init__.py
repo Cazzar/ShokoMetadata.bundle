@@ -189,7 +189,8 @@ class ShokoCommonAgent:
 
                 episodeObj = metadata.seasons[season].episodes[ep['epnumber']]
                 episodeObj.title = ep['name']
-                episodeObj.summary = ep['summary']
+                if (ep['summary'] != "Episode Overview not Available"): 
+                    episodeObj.summary = ep['summary']
                 Log("" + str(ep['epnumber']) + ": " + ep['summary'])
 
                 if ep['air'] != '1/01/0001 12:00:00 AM' and ep['air'] != '0001-01-01':
