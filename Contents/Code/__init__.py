@@ -74,7 +74,7 @@ class ShokoCommonAgent:
 
         # http://127.0.0.1:8111/api/serie/search?query=Clannad&level=1&apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579
 
-        prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=%d" % (urllib.quote(name), 1, Prefs['Fuzzy']))
+        prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=%d" % (urllib.quote(name.encode('utf8')), 1, Prefs['Fuzzy']))
 
         for result in prelimresults:
             #for result in group['series']:
@@ -122,6 +122,16 @@ class ShokoCommonAgent:
         self.metadata_add(metadata.posters, series['art']['thumb'])
         self.metadata_add(metadata.art, series['art']['fanart'])
 
+        groupinfo = HttpReq("api/serie/groups?id=%s&level=2" % aid);
+        collections = []
+        for group in groupinfo:
+            if (len(group['series']) > 1):
+                collections.append(group['name'])
+
+        metadata.collections = collections
+
+
+
         ### Generate general content ratings.
         ### VERY rough approximation to: https://www.healthychildren.org/English/family-life/Media/Pages/TV-Ratings-A-Guide-for-Parents.aspx
 
@@ -163,28 +173,31 @@ class ShokoCommonAgent:
 
         if not movie:
             for ep in series['eps']:
-                if ep['eptype'] != "Episode":
+                if ep['eptype'] not in ["Episode", "Special", "Credits", "Trailer"]:
                     continue
 
-                season = 1
+                if ep['eptype'] == "Episode": season = 1
+                elif ep['eptype'] == "Special": season = 0
+                elif ep['eptype'] == "Credits": season = -1
+                elif ep['eptype'] == "Trailer": season = -2;
                 try:
                     season = int(ep['season'].split('x')[0])
+                    if season <= 0 and ep['eptype'] == 'Episode': season = 1
+                    elif season > 0 and ep['eptype'] == 'Special': season = 0
                 except:
                     pass
 
                 episodeObj = metadata.seasons[season].episodes[ep['epnumber']]
                 episodeObj.title = ep['name']
-                episodeObj.summary = ep['summary']
+                if (ep['summary'] != "Episode Overview not Available"): 
+                    episodeObj.summary = ep['summary']
+                Log("" + str(ep['epnumber']) + ": " + ep['summary'])
 
                 if ep['air'] != '1/01/0001 12:00:00 AM' and ep['air'] != '0001-01-01':
                     episodeObj.originally_available_at = datetime.strptime(ep['air'], "%Y-%m-%d").date()
 
-                if len(series['art']['thumb']) and Prefs['customThumbs']:
-                    for art in series['art']['thumb']:
-                        if ':' in art['url']:
-                            urlparts = urllib.parse.urlparse(art['url'])
-                            art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
-                        episodeObj.thumbs[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
+                if len(ep['art']['thumb']) and Prefs['customThumbs']:
+                    self.metadata_add(episodeObj.thumbs, ep['art']['thumb'])
 
             links = HttpReq("api/links/serie?id=%s" % aid)
 
@@ -202,6 +215,8 @@ class ShokoCommonAgent:
         valid = list()
         
         for art in images:
+            if 'support/plex_404.png' in art['url']:
+                continue
             if ':' in art['url']:
                 urlparts = urllib.parse.urlparse(art['url'])
                 art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
@@ -236,7 +251,7 @@ class ShokoTVAgent(Agent.TV_Shows, ShokoCommonAgent):
 
 class ShokoMovieAgent(Agent.Movies, ShokoCommonAgent):
     name, primary_provider, fallback_agent, contributes_to, languages, accepts_from = (
-        'ShokoMovies', True, False, ['com.plexapp.agents.hama'], [Locale.Language.English, ],
+        'ShokoMovies', True, False, ['com.plexapp.agents.hama'], [Locale.Language.English, 'fr', 'zh', 'sv', 'no', 'da', 'fi', 'nl', 'de', 'it', 'es', 'pl', 'hu', 'el', 'tr', 'ru', 'he', 'ja', 'pt', 'cs', 'ko', 'sl', 'hr'],
         ['com.plexapp.agents.localmedia'])  # , 'com.plexapp.agents.opensubtitles'
 
     def search(self, results, media, lang, manual): self.Search(results, media, lang, manual, True)
