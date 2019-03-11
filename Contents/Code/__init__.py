@@ -79,7 +79,7 @@ class ShokoCommonAgent:
         for result in prelimresults:
             #for result in group['series']:
             score = 100 if result['name'] == name else 85  # TODO: Improve this to respect synonyms./
-            meta = MetadataSearchResult('%s' % result['id'], result['name'], result['year'], score, lang)
+            meta = MetadataSearchResult('%s' % result['id'], result['name'], try_get(result, 'year', None), score, lang)
             results.Append(meta)
 
             # results.Sort('score', descending=True)
