@@ -215,14 +215,17 @@ class ShokoCommonAgent:
         valid = list()
         
         for art in images:
-            if 'support/plex_404.png' in art['url']:
-                continue
-            if ':' in art['url']:
-                urlparts = urllib.parse.urlparse(art['url'])
-                art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
-            Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
-            meta[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
-            valid.append(art['url'])
+            try:
+                if 'support/plex_404.png' in art['url']:
+                    continue
+                if ':' in art['url']:
+                    urlparts = urllib.parse.urlparse(art['url'])
+                    art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
+                Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
+                meta[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
+                valid.append(art['url'])
+            except:
+                Log("[metadata_add] :: Invalid URL given (%s), skipping" % art['url'])
 
         meta.validate_keys(valid)
 
