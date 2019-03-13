@@ -15,7 +15,7 @@ PLEX_HOST = ''
 
 #this is from https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/master/Contents/Code/__init__.py
 THEME_URL = 'http://tvthemes.plexapp.com/%s.mp3'
-
+LINK_REGEX = r"https?:\/\/\w+.\w+(?:\/?\w+)? \[([\w ]+)\]"
 
 def ValidatePrefs():
     pass
@@ -104,7 +104,7 @@ class ShokoCommonAgent:
         series = HttpReq("api/serie?id=%s&level=3&allpics=1&tagfilter=%d" % (aid, flags))
 
         # build metadata on the TV show.
-        metadata.summary = try_get(series, 'summary')
+        metadata.summary = re.sub(LINK_REGEX, r'\1', try_get(series, 'summary'))
         metadata.title = series['name']
         metadata.rating = float(series['rating'])
         year = try_get(series, "year", None)
