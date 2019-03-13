@@ -15,7 +15,7 @@ PLEX_HOST = ''
 
 #this is from https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/master/Contents/Code/__init__.py
 THEME_URL = 'http://tvthemes.plexapp.com/%s.mp3'
-
+LINK_REGEX = r"https?:\/\/\w+.\w+(?:\/?\w+)? \[([\w ]+)\]"
 
 def ValidatePrefs():
     pass
@@ -79,7 +79,7 @@ class ShokoCommonAgent:
         for result in prelimresults:
             #for result in group['series']:
             score = 100 if result['name'] == name else 85  # TODO: Improve this to respect synonyms./
-            meta = MetadataSearchResult('%s' % result['id'], result['name'], result['year'], score, lang)
+            meta = MetadataSearchResult('%s' % result['id'], result['name'], try_get(result, 'year', None), score, lang)
             results.Append(meta)
 
             # results.Sort('score', descending=True)
@@ -104,7 +104,7 @@ class ShokoCommonAgent:
         series = HttpReq("api/serie?id=%s&level=3&allpics=1&tagfilter=%d" % (aid, flags))
 
         # build metadata on the TV show.
-        metadata.summary = try_get(series, 'summary')
+        metadata.summary = re.sub(LINK_REGEX, r'\1', try_get(series, 'summary'))
         metadata.title = series['name']
         metadata.rating = float(series['rating'])
         year = try_get(series, "year", None)
@@ -215,14 +215,17 @@ class ShokoCommonAgent:
         valid = list()
         
         for art in images:
-            if 'support/plex_404.png' in art['url']:
-                continue
-            if ':' in art['url']:
-                urlparts = urllib.parse.urlparse(art['url'])
-                art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
-            Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
-            meta[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
-            valid.append(art['url'])
+            try:
+                if 'support/plex_404.png' in art['url']:
+                    continue
+                if ':' in art['url']:
+                    urlparts = urllib.parse.urlparse(art['url'])
+                    art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
+                Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
+                meta[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
+                valid.append(art['url'])
+            except:
+                Log("[metadata_add] :: Invalid URL given (%s), skipping" % art['url'])
 
         meta.validate_keys(valid)
 
