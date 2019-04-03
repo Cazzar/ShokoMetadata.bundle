@@ -15,7 +15,7 @@ PLEX_HOST = ''
 
 #this is from https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/master/Contents/Code/__init__.py
 THEME_URL = 'http://tvthemes.plexapp.com/%s.mp3'
-LINK_REGEX = r"https?:\/\/\w+.\w+(?:\/?\w+)? \[([\w ]+)\]"
+LINK_REGEX = r"https?:\/\/\w+.\w+(?:\/?\w+)? \[([^\]]+)\]"
 
 def ValidatePrefs():
     pass
