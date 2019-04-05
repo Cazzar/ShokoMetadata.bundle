@@ -24,7 +24,7 @@ def ValidatePrefs():
 def Start():
     Log("Shoko metata agent started")
     HTTP.Headers['Accept'] = 'application/json'
-    HTTP.CacheTime = 0 #cache, can you please go away, typically we will be requesting LOCALLY. HTTP.CacheTime
+    HTTP.CacheTime = 0.1 #cache, can you please go away, typically we will be requesting LOCALLY. HTTP.CacheTime
     ValidatePrefs()
 
 
@@ -152,6 +152,9 @@ class ShokoCommonAgent:
                 metadata.content_rating = 'TV-14'
 
             if 'Seinen' in tags:
+                metadata.content_rating = 'TV-MA'
+
+            if 'Mature' in tags:
                 metadata.content_rating = 'TV-MA'
 
             if '18 Restricted' in tags:
