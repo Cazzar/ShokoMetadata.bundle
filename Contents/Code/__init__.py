@@ -154,6 +154,9 @@ class ShokoCommonAgent:
             if 'Seinen' in tags:
                 metadata.content_rating = 'TV-MA'
 
+            if 'Mature' in tags:
+                metadata.content_rating = 'TV-MA'
+
             if '18 Restricted' in tags:
                 metadata.content_rating = 'TV-R'
 
