@@ -118,9 +118,9 @@ class ShokoCommonAgent:
 
         metadata.genres = tags
 
-        self.metadata_add(metadata.banners, series['art']['banner'])
-        self.metadata_add(metadata.posters, series['art']['thumb'])
-        self.metadata_add(metadata.art, series['art']['fanart'])
+        self.metadata_add(metadata.banners, try_get(series['art'], 'banner', []))
+        self.metadata_add(metadata.posters, try_get(series['art'], 'thumb', []))
+        self.metadata_add(metadata.art, try_get(series['art'], 'fanart', []))
 
         groupinfo = HttpReq("api/serie/groups?id=%s&level=2" % aid);
         collections = []
