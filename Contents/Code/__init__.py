@@ -104,7 +104,8 @@ class ShokoCommonAgent:
         series = HttpReq("api/serie?id=%s&level=3&allpics=1&tagfilter=%d" % (aid, flags))
 
         # build metadata on the TV show.
-        metadata.summary = re.sub(LINK_REGEX, r'\1', try_get(series, 'summary'))
+        #metadata.summary = re.sub(LINK_REGEX, r'\1', try_get(series, 'summary'))
+        metadata.summary = summary_sanitizer(try_get(series, 'summary'))
         metadata.title = series['name']
         metadata.rating = float(series['rating'])
         year = try_get(series, "year", None)
@@ -193,7 +194,7 @@ class ShokoCommonAgent:
                 episodeObj = metadata.seasons[season].episodes[ep['epnumber']]
                 episodeObj.title = ep['name']
                 if (ep['summary'] != "Episode Overview not Available"): 
-                    episodeObj.summary = ep['summary']
+                    episodeObj.summary = summary_sanitizer(ep['summary'])
                 Log("" + str(ep['epnumber']) + ": " + ep['summary'])
 
                 if ep['air'] != '1/01/0001 12:00:00 AM' and ep['air'] != '0001-01-01':
@@ -235,6 +236,13 @@ class ShokoCommonAgent:
         for key in meta.keys():
             if (key not in valid):
                 del meta[key]
+
+def summary_sanitizer(summary):
+    summary = re.sub(LINK_REGEX, r'\1', summary)                                           # Replace links
+    summary = re.sub(r'^(\*|--|~) .*',              "",      summary, flags=re.MULTILINE)  # Remove the line if it starts with ('* ' / '-- ' / '~ ')
+    summary = re.sub(r'\n(Source|Note|Summary):.*', "",      summary, flags=re.DOTALL)     # Remove all lines after this is seen
+    summary = re.sub(r'\n\n+',                      r'\n\n', summary, flags=re.DOTALL)     # Condense multiple empty lines
+    return summary.strip(" \n")
 
 def try_get(arr, idx, default=""):
     try:
