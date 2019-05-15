@@ -88,5 +88,33 @@
         "label": "Grab theme music the same way plex theme music would",
         "type": "bool",
         "default": true
+    },
+
+    {
+        "id": "synposisCleanLinks",
+        "label": "Synopsis: Remove links.",
+        "type": "bool",
+        "default": true
+    },
+
+    {
+        "id": "synposisCleanMiscLines",
+        "label": "Synopsis: Remove the line if it starts with ('* ' / '-- ' / '~ ').",
+        "type": "bool",
+        "default": true
+    },
+
+    {
+        "id": "synposisRemoveSummary",
+        "label": "Synopsis: Remove anything after Source, Note or Summary.",
+        "type": "bool",
+        "default": true
+    },
+
+    {
+        "id": "synposisCleanMultiEmptyLines",
+        "label": "Synopsis: Collapse excessive empty lines..",
+        "type": "bool",
+        "default": true
     }
 ]

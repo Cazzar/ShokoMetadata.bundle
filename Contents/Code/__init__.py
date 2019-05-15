@@ -163,8 +163,9 @@ class ShokoCommonAgent:
 
             Log('Assumed tv rating to be: %s' % metadata.content_rating)
 
-        if series['air'] != '1/01/0001 12:00:00 AM' and series['air'] != '0001-01-01':
-            metadata.originally_available_at = datetime.strptime(series['air'], "%Y-%m-%d").date()
+        airdate = try_get(series, 'air', '1/01/0001 12:00:00 AM')
+        if airdate != '1/01/0001 12:00:00 AM' and airdate != '0001-01-01':
+            metadata.originally_available_at = datetime.strptime(airdate, "%Y-%m-%d").date()
 
         metadata.roles.clear()
         for role in try_get(series, 'roles', []):
@@ -243,10 +244,14 @@ class ShokoCommonAgent:
                 del meta[key]
 
 def summary_sanitizer(summary):
-    summary = re.sub(LINK_REGEX, r'\1', summary)                                           # Replace links
-    summary = re.sub(r'^(\*|--|~) .*',              "",      summary, flags=re.MULTILINE)  # Remove the line if it starts with ('* ' / '-- ' / '~ ')
-    summary = re.sub(r'\n(Source|Note|Summary):.*', "",      summary, flags=re.DOTALL)     # Remove all lines after this is seen
-    summary = re.sub(r'\n\n+',                      r'\n\n', summary, flags=re.DOTALL)     # Condense multiple empty lines
+    if Prefs["synposisCleanLinks"]:
+        summary = re.sub(LINK_REGEX, r'\1', summary)                                           # Replace links
+    if Prefs["synposisCleanMiscLines"]:
+        summary = re.sub(r'^(\*|--|~) .*',              "",      summary, flags=re.MULTILINE)  # Remove the line if it starts with ('* ' / '-- ' / '~ ')
+    if Prefs["synposisRemoveSummary"]:
+        summary = re.sub(r'\n(Source|Note|Summary):.*', "",      summary, flags=re.DOTALL)     # Remove all lines after this is seen
+    if Prefs["synposisCleanMultiEmptyLines"]:
+        summary = re.sub(r'\n\n+',                      r'\n\n', summary, flags=re.DOTALL)     # Condense multiple empty lines
     return summary.strip(" \n")
 
 def try_get(arr, idx, default=""):
