@@ -167,7 +167,7 @@ class ShokoCommonAgent:
             metadata.originally_available_at = datetime.strptime(series['air'], "%Y-%m-%d").date()
 
         metadata.roles.clear()
-        for role in series['roles']:    
+        for role in try_get(series, 'roles', []):
             meta_role = metadata.roles.new()
             Log(role['character'])
             meta_role.name = role['staff']
