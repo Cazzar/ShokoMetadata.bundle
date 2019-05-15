@@ -114,7 +114,7 @@ class ShokoCommonAgent:
         #    metadata.year = int(year)
 
         tags = []
-        for tag in series['tags']:
+        for tag in try_get(series, 'tags', []):
             tags.append(tag)
 
         metadata.genres = tags
