@@ -198,8 +198,10 @@ class ShokoCommonAgent:
                     episodeObj.summary = summary_sanitizer(ep['summary'])
                 Log("" + str(ep['epnumber']) + ": " + ep['summary'])
 
-                if ep['air'] != '1/01/0001 12:00:00 AM' and ep['air'] != '0001-01-01':
-                    episodeObj.originally_available_at = datetime.strptime(ep['air'], "%Y-%m-%d").date()
+                airdate = try_get(ep, 'air', '1/01/0001 12:00:00 AM')
+
+                if airdate != '1/01/0001 12:00:00 AM' and airdate != '0001-01-01':
+                    episodeObj.originally_available_at = datetime.strptime(airdate, "%Y-%m-%d").date()
 
                 if len(ep['art']['thumb']) and Prefs['customThumbs']:
                     self.metadata_add(episodeObj.thumbs, ep['art']['thumb'])
