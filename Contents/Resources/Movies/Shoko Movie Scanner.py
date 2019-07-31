@@ -97,7 +97,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
         
         if seasonNumber <= 0 and Prefs['IncludeOther'] == False: continue #Ignore this by choice.
         
-        if (series_data["ismovie"] == 0 or seasonNumber <= 0):
+        if (try_get(series_data, "ismovie", 0) == 0 or seasonNumber <= 0):
             continue 
         vid = Media.Movie(showTitle, int(seasonYear))
         log('Scan', 'vid: %s', vid)

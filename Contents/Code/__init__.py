@@ -15,7 +15,7 @@ PLEX_HOST = ''
 
 #this is from https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/master/Contents/Code/__init__.py
 THEME_URL = 'http://tvthemes.plexapp.com/%s.mp3'
-LINK_REGEX = r"https?:\/\/\w+.\w+(?:\/?\w+)? \[([\w ]+)\]"
+LINK_REGEX = r"https?:\/\/\w+.\w+(?:\/?\w+)? \[([^\]]+)\]"
 
 def ValidatePrefs():
     pass
@@ -104,7 +104,8 @@ class ShokoCommonAgent:
         series = HttpReq("api/serie?id=%s&level=3&allpics=1&tagfilter=%d" % (aid, flags))
 
         # build metadata on the TV show.
-        metadata.summary = re.sub(LINK_REGEX, r'\1', try_get(series, 'summary'))
+        #metadata.summary = re.sub(LINK_REGEX, r'\1', try_get(series, 'summary'))
+        metadata.summary = summary_sanitizer(try_get(series, 'summary'))
         metadata.title = series['name']
         metadata.rating = float(series['rating'])
         year = try_get(series, "year", None)
@@ -113,14 +114,14 @@ class ShokoCommonAgent:
         #    metadata.year = int(year)
 
         tags = []
-        for tag in series['tags']:
+        for tag in try_get(series, 'tags', []):
             tags.append(tag)
 
         metadata.genres = tags
 
-        self.metadata_add(metadata.banners, series['art']['banner'])
-        self.metadata_add(metadata.posters, series['art']['thumb'])
-        self.metadata_add(metadata.art, series['art']['fanart'])
+        self.metadata_add(metadata.banners, try_get(series['art'], 'banner', []))
+        self.metadata_add(metadata.posters, try_get(series['art'], 'thumb', []))
+        self.metadata_add(metadata.art, try_get(series['art'], 'fanart', []))
 
         groupinfo = HttpReq("api/serie/groups?id=%s&level=2" % aid);
         collections = []
@@ -154,16 +155,20 @@ class ShokoCommonAgent:
             if 'Seinen' in tags:
                 metadata.content_rating = 'TV-MA'
 
+            if 'Mature' in tags:
+                metadata.content_rating = 'TV-MA'
+
             if '18 Restricted' in tags:
                 metadata.content_rating = 'TV-R'
 
             Log('Assumed tv rating to be: %s' % metadata.content_rating)
 
-        if series['air'] != '1/01/0001 12:00:00 AM' and series['air'] != '0001-01-01':
-            metadata.originally_available_at = datetime.strptime(series['air'], "%Y-%m-%d").date()
+        airdate = try_get(series, 'air', '1/01/0001 12:00:00 AM')
+        if airdate != '1/01/0001 12:00:00 AM' and airdate != '0001-01-01':
+            metadata.originally_available_at = datetime.strptime(airdate, "%Y-%m-%d").date()
 
         metadata.roles.clear()
-        for role in series['roles']:    
+        for role in try_get(series, 'roles', []):
             meta_role = metadata.roles.new()
             Log(role['character'])
             meta_role.name = role['staff']
@@ -190,11 +195,13 @@ class ShokoCommonAgent:
                 episodeObj = metadata.seasons[season].episodes[ep['epnumber']]
                 episodeObj.title = ep['name']
                 if (ep['summary'] != "Episode Overview not Available"): 
-                    episodeObj.summary = ep['summary']
+                    episodeObj.summary = summary_sanitizer(ep['summary'])
                 Log("" + str(ep['epnumber']) + ": " + ep['summary'])
 
-                if ep['air'] != '1/01/0001 12:00:00 AM' and ep['air'] != '0001-01-01':
-                    episodeObj.originally_available_at = datetime.strptime(ep['air'], "%Y-%m-%d").date()
+                airdate = try_get(ep, 'air', '1/01/0001 12:00:00 AM')
+
+                if airdate != '1/01/0001 12:00:00 AM' and airdate != '0001-01-01':
+                    episodeObj.originally_available_at = datetime.strptime(airdate, "%Y-%m-%d").date()
 
                 if len(ep['art']['thumb']) and Prefs['customThumbs']:
                     self.metadata_add(episodeObj.thumbs, ep['art']['thumb'])
@@ -218,20 +225,36 @@ class ShokoCommonAgent:
             try:
                 if 'support/plex_404.png' in art['url']:
                     continue
+                if 'Static/plex_404.png' in art['url']:
+                    continue
                 if ':' in art['url']:
                     urlparts = urllib.parse.urlparse(art['url'])
                     art['url'] = art['url'].replace("{scheme}://{host}:{port}/".format(scheme=urlparts.scheme, host=urlparts.hostname, port=urlparts.port), '')
-                Log("[metadata_add] :: Adding metadata %s (index %d)" % (art['url'], art['index']))
-                meta[art['url']] = Proxy.Media(HTTP.Request("http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])).content, art['index'])
+                url = "http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art['url'])
+                idx = try_get(art, 'index', 0)
+                Log("[metadata_add] :: Adding metadata %s (index %d)" % (url, idx))
+                meta[art['url']] = Proxy.Media(HTTP.Request(url).content, idx)
                 valid.append(art['url'])
-            except:
+            except Exception as e:
                 Log("[metadata_add] :: Invalid URL given (%s), skipping" % art['url'])
+                Log(e)
 
         meta.validate_keys(valid)
 
         for key in meta.keys():
             if (key not in valid):
                 del meta[key]
+
+def summary_sanitizer(summary):
+    if Prefs["synposisCleanLinks"]:
+        summary = re.sub(LINK_REGEX, r'\1', summary)                                           # Replace links
+    if Prefs["synposisCleanMiscLines"]:
+        summary = re.sub(r'^(\*|--|~) .*',              "",      summary, flags=re.MULTILINE)  # Remove the line if it starts with ('* ' / '-- ' / '~ ')
+    if Prefs["synposisRemoveSummary"]:
+        summary = re.sub(r'\n(Source|Note|Summary):.*', "",      summary, flags=re.DOTALL)     # Remove all lines after this is seen
+    if Prefs["synposisCleanMultiEmptyLines"]:
+        summary = re.sub(r'\n\n+',                      r'\n\n', summary, flags=re.DOTALL)     # Condense multiple empty lines
+    return summary.strip(" \n")
 
 def try_get(arr, idx, default=""):
     try:
