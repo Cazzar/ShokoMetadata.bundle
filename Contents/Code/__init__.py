@@ -184,13 +184,14 @@ class ShokoCommonAgent:
                 if ep['eptype'] == "Episode": season = 1
                 elif ep['eptype'] == "Special": season = 0
                 elif ep['eptype'] == "Credits": season = -1
-                elif ep['eptype'] == "Trailer": season = -2;
-                try:
-                    season = int(ep['season'].split('x')[0])
-                    if season <= 0 and ep['eptype'] == 'Episode': season = 1
-                    elif season > 0 and ep['eptype'] == 'Special': season = 0
-                except:
-                    pass
+                elif ep['eptype'] == "Trailer": season = -2
+                if not Prefs['singleSeasonOrdering']:
+                    try:
+                        season = int(ep['season'].split('x')[0])
+                        if season <= 0 and ep['eptype'] == 'Episode': season = 1
+                        elif season > 0 and ep['eptype'] == 'Special': season = 0
+                    except:
+                        pass
 
                 episodeObj = metadata.seasons[season].episodes[ep['epnumber']]
                 episodeObj.title = ep['name']

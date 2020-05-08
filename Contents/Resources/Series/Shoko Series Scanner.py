@@ -8,7 +8,8 @@ Prefs = {
     'Port': 8111,
     'Username': 'Default',
     'Password': '',
-    'IncludeOther': True
+    'IncludeOther': True,
+    'SingleSeasonOrdering': False
 }
 
 API_KEY = ''
@@ -120,7 +121,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 seasonStr = try_get(episode_data, 'season', None)
                 if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
                 elif episode_data['eptype'] == 'Trailer': seasonNumber = -2 #season -2 for Trailer
-                elif seasonStr == None:
+                elif Prefs['SingleSeasonOrdering'] or seasonStr == None:
                     if episode_data['eptype'] == 'Episode': seasonNumber = 1
                     elif episode_data['eptype'] == 'Special': seasonNumber = 0
                 else:
