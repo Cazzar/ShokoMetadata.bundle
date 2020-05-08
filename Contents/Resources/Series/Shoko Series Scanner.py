@@ -8,6 +8,7 @@ Prefs = {
     'Port': 8111,
     'Username': 'Default',
     'Password': '',
+    'IncludeSpecials': True,
     'IncludeOther': True,
     'SingleSeasonOrdering': False
 }
@@ -129,7 +130,8 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                     if seasonNumber <= 0 and episode_data['eptype'] == 'Episode': seasonNumber = 1
                     elif seasonNumber > 0 and episode_data['eptype'] == 'Special': seasonNumber = 0
 
-                if seasonNumber <= 0 and Prefs['IncludeOther'] == False: continue #Ignore this by choice.
+                if seasonNumber == 0 and Prefs['IncludeSpecials'] == False: continue
+                if seasonNumber < 0 and Prefs['IncludeOther'] == False: continue #Ignore this by choice.
 
                 if (try_get(series_data, "ismovie", 0) == 1 and seasonNumber >= 1): continue # Ignore movies in preference for Shoko Movie Scanner, but keep specials as Plex sees specials as duplicate
                 Log.info('season number: %s', seasonNumber)
