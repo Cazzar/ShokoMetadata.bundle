@@ -30,7 +30,7 @@
     },
 
     {
-        "id": "singleSeasonOrdering",
+        "id": "SingleSeasonOrdering",
         "label": "Use single season ordering (IMPORTANT: Make sure the setting in scanner is matches with this!)",
         "type": "bool",
         "default": false
