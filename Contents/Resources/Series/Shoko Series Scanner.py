@@ -95,60 +95,98 @@ def GetApiKey():
 
 
 def Scan(path, files, mediaList, subdirs, language=None, root=None):
-        Log.debug('path: %s', path)
-        Log.debug('files: %s', files)
-        Log.debug('mediaList: %s', mediaList)
-        Log.debug('subdirs: %s', subdirs)
-        Log.debug('language: %s', language)
-        Log.info('root: %s', root)
-        
-        # Scan for video files.
-        VideoFiles.Scan(path, files, mediaList, subdirs, root)
-        
-        for idx, file in enumerate(files):
-            try:
-                Log.info('file: %s', file)
-                # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
 
-                episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(os.path.basename(file))))
-                if len(episode_data) == 0: continue
-                if (try_get(episode_data, "code", 200) == 404): continue
+    if not path: # If current folder is root folder
+        Log.info("Manual call to group folders")
+        subfolders = subdirs[:]
 
-                series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
-                showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
-                Log.info('show title: %s', showTitle)
+        while subfolders: # subfolder scanning queue
+            full_path = subfolders.pop(0)
+            path = os.path.relpath(full_path, root)
+            
+            Log.info(''.ljust(100, '='))
+            Log.info('Started subfolder scan: %s', full_path)
+            Log.info(''.ljust(100, '='))
 
-                seasonNumber = 0
-                seasonStr = try_get(episode_data, 'season', None)
-                if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
-                elif episode_data['eptype'] == 'Trailer': seasonNumber = -2 #season -2 for Trailer
-                elif Prefs['SingleSeasonOrdering'] or seasonStr == None:
-                    if episode_data['eptype'] == 'Episode': seasonNumber = 1
-                    elif episode_data['eptype'] == 'Special': seasonNumber = 0
+            subdir_dirs, subdir_files = [], []
+
+            for file in os.listdir(full_path):
+                path_item = os.path.join(full_path, file) 
+                if os.path.isdir(path_item):
+                    subdir_dirs.append(path_item)
                 else:
-                    seasonNumber = int(seasonStr.split('x')[0])
-                    if seasonNumber <= 0 and episode_data['eptype'] == 'Episode': seasonNumber = 1
-                    elif seasonNumber > 0 and episode_data['eptype'] == 'Special': seasonNumber = 0
+                    subdir_files.append(path_item)
 
-                if seasonNumber == 0 and Prefs['IncludeSpecials'] == False: continue
-                if seasonNumber < 0 and Prefs['IncludeOther'] == False: continue #Ignore this by choice.
+            Log.info("Sub-directories: %s", subdir_dirs)
+            Log.info("Files: %s", subdir_files)
 
-                if (try_get(series_data, "ismovie", 0) == 1 and seasonNumber >= 1): continue # Ignore movies in preference for Shoko Movie Scanner, but keep specials as Plex sees specials as duplicate
-                Log.info('season number: %s', seasonNumber)
-                episodeNumber = int(episode_data['epnumber'])
-                Log.info('episode number: %s', episodeNumber)
+            for dir in subdir_dirs:
+                Log.info("[Added for scanning] " + dir) # Add the subfolder to subfolder scanning queue)
+                subfolders.append(dir)
 
-                vid = Media.Episode(showTitle, seasonNumber, episodeNumber)
-                Log.info('vid: %s', vid)
-                vid.parts.append(file)
-                mediaList.append(vid)
-            except Exception as e:
-                Log.error("Error in Scan: '%s'" % e)
-                continue
-        
-        Log.info('stack media')
-        Stack.Scan(path, files, mediaList, subdirs)
-        Log.debug('media list %s', mediaList)
+            if subdir_files:
+                Log.info("CALLING SCAN FOR FILES IN CURRENT FOLDER")
+                Scan(path, sorted(subdir_files), mediaList, [], language=language, root=root) 
+                # relative path for dir or it will group multiple series into one as before and no empty subdirs array because they will be scanned afterwards.
+            
+            Log.info(''.ljust(100, '='))
+            Log.info('Completed subfolder scan: %s', full_path)
+            Log.info(''.ljust(100, '='))
+
+    Log.debug('path: %s', path)
+    Log.debug('files: %s', files)
+    Log.debug('mediaList: %s', mediaList)
+    Log.debug('subdirs: %s', subdirs)
+    Log.debug('language: %s', language)
+    Log.info('root: %s', root)
+    
+    # Scan for video files.
+    VideoFiles.Scan(path, files, mediaList, subdirs, root)
+    
+    for idx, file in enumerate(files):
+        try:
+            Log.info('file: %s', file)
+            # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
+
+            episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(os.path.basename(file))))
+            if len(episode_data) == 0: continue
+            if (try_get(episode_data, "code", 200) == 404): continue
+
+            series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
+            showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
+            Log.info('show title: %s', showTitle)
+
+            seasonNumber = 0
+            seasonStr = try_get(episode_data, 'season', None)
+            if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
+            elif episode_data['eptype'] == 'Trailer': seasonNumber = -2 #season -2 for Trailer
+            elif Prefs['SingleSeasonOrdering'] or seasonStr == None:
+                if episode_data['eptype'] == 'Episode': seasonNumber = 1
+                elif episode_data['eptype'] == 'Special': seasonNumber = 0
+            else:
+                seasonNumber = int(seasonStr.split('x')[0])
+                if seasonNumber <= 0 and episode_data['eptype'] == 'Episode': seasonNumber = 1
+                elif seasonNumber > 0 and episode_data['eptype'] == 'Special': seasonNumber = 0
+
+            if seasonNumber == 0 and Prefs['IncludeSpecials'] == False: continue
+            if seasonNumber < 0 and Prefs['IncludeOther'] == False: continue #Ignore this by choice.
+
+            if (try_get(series_data, "ismovie", 0) == 1 and seasonNumber >= 1): continue # Ignore movies in preference for Shoko Movie Scanner, but keep specials as Plex sees specials as duplicate
+            Log.info('season number: %s', seasonNumber)
+            episodeNumber = int(episode_data['epnumber'])
+            Log.info('episode number: %s', episodeNumber)
+
+            vid = Media.Episode(showTitle, seasonNumber, episodeNumber)
+            Log.info('vid: %s', vid)
+            vid.parts.append(file)
+            mediaList.append(vid)
+        except Exception as e:
+            Log.error("Error in Scan: '%s'" % e)
+            continue
+    
+    Log.info('stack media')
+    Stack.Scan(path, files, mediaList, subdirs)
+    Log.debug('media list %s', mediaList)
 
 
 def try_get(arr, idx, default=""):
