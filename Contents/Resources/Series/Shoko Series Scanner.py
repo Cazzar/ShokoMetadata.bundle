@@ -135,7 +135,6 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
 
     Log.debug('path: %s', path)
     Log.debug('files: %s', files)
-    Log.debug('mediaList: %s', mediaList)
     Log.debug('subdirs: %s', subdirs)
     Log.debug('language: %s', language)
     Log.info('root: %s', root)
@@ -184,9 +183,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
             Log.error("Error in Scan: '%s'" % e)
             continue
     
-    Log.info('stack media')
     Stack.Scan(path, files, mediaList, subdirs)
-    Log.debug('media list %s', mediaList)
 
 
 def try_get(arr, idx, default=""):
