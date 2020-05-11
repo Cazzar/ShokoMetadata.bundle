@@ -96,49 +96,13 @@ def GetApiKey():
 
 def Scan(path, files, mediaList, subdirs, language=None, root=None):
 
-    if not path: # If current folder is root folder
-        Log.info("Manual call to group folders")
-        subfolders = subdirs[:]
+    Log.debug('path: %s', path)
+    Log.debug('files: %s', files)
 
-        while subfolders: # subfolder scanning queue
-            full_path = subfolders.pop(0)
-            path = os.path.relpath(full_path, root)
-            
-            Log.info(''.ljust(100, '='))
-            Log.info('Started subfolder scan: %s', full_path)
-            Log.info(''.ljust(100, '='))
-
-            subdir_dirs, subdir_files = [], []
-
-            for file in os.listdir(full_path):
-                path_item = os.path.join(full_path, file) 
-                if os.path.isdir(path_item):
-                    subdir_dirs.append(path_item)
-                else:
-                    subdir_files.append(path_item)
-
-            Log.info("Sub-directories: %s", subdir_dirs)
-            Log.info("Files: %s", subdir_files)
-
-            for dir in subdir_dirs:
-                Log.info("[Added for scanning] " + dir) # Add the subfolder to subfolder scanning queue)
-                subfolders.append(dir)
-
-            if subdir_files:
-                Log.info("CALLING SCAN FOR FILES IN CURRENT FOLDER")
-                Scan(path, sorted(subdir_files), mediaList, [], language=language, root=root) 
-                # relative path for dir or it will group multiple series into one as before and no empty subdirs array because they will be scanned afterwards.
-            
-            Log.info(''.ljust(100, '='))
-            Log.info('Completed subfolder scan: %s', full_path)
-            Log.info(''.ljust(100, '='))
+    for subdir in subdirs:
+        Log.info("[folder] " + os.path.relpath(subdir, root))
 
     if files:
-        Log.debug('path: %s', path)
-        Log.debug('files: %s', files)
-        Log.debug('subdirs: %s', subdirs)
-        Log.debug('language: %s', language)
-        Log.info('root: %s', root)
         
         # Scan for video files.
         VideoFiles.Scan(path, files, mediaList, subdirs, root)
@@ -183,8 +147,51 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
             except Exception as e:
                 Log.error("Error in Scan: '%s'" % e)
                 continue
-        
+
+        Log.info("medialist: %s", mediaList)
         Stack.Scan(path, files, mediaList, subdirs)
+
+    if not path: # If current folder is root folder
+        Log.info("Manual call to group folders")
+        subfolders = subdirs[:]
+
+        while subfolders: # subfolder scanning queue
+            full_path = subfolders.pop(0)
+            path = os.path.relpath(full_path, root)
+
+            reverse_path = list(reversed(path.split(os.sep)))
+            
+            Log.info(''.ljust(100, '='))
+            Log.info('Started subfolder scan: %s', full_path)
+            Log.info(''.ljust(100, '='))
+
+            subdir_dirs, subdir_files = [], []
+
+            for file in os.listdir(full_path):
+                path_item = os.path.join(full_path, file) 
+                if os.path.isdir(path_item):
+                    subdir_dirs.append(path_item)
+                else:
+                    subdir_files.append(path_item)
+
+            Log.info("Sub-directories: %s", subdir_dirs)
+            Log.info("Files: %s", subdir_files)
+
+            for dir in subdir_dirs:
+                Log.info("[Added for scanning] " + dir) # Add the subfolder to subfolder scanning queue)
+                subfolders.append(dir)
+
+            grouping_dir = full_path.rsplit(os.sep, full_path.count(os.sep)-1-root.count(os.sep))[0]
+            if subdir_files and (len(reverse_path)>1 or subdir_dirs):
+                if grouping_dir in subdirs:
+                    subdirs.remove(grouping_dir)  #Prevent group folders from being called by Plex normal call to Scan()
+                Log.info("CALLING SCAN FOR FILES IN CURRENT FOLDER")
+                Scan(path, sorted(subdir_files), mediaList, [], language=language, root=root) 
+                # relative path for dir or it will group multiple series into one as before and no empty subdirs array because they will be scanned afterwards.
+            
+            Log.info(''.ljust(100, '='))
+            Log.info('Completed subfolder scan: %s', full_path)
+            Log.info(''.ljust(100, '='))
 
 
 def try_get(arr, idx, default=""):
