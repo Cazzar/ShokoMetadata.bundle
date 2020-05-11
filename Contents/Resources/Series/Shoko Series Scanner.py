@@ -149,7 +149,6 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 Log.error("Error in Scan: '%s'" % e)
                 continue
 
-        Log.info("medialist: %s", mediaList)
         Stack.Scan(path, files, mediaList, subdirs)
 
     if not path: # If current folder is root folder
