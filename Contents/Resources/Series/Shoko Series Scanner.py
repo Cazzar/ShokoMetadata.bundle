@@ -133,57 +133,58 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
             Log.info('Completed subfolder scan: %s', full_path)
             Log.info(''.ljust(100, '='))
 
-    Log.debug('path: %s', path)
-    Log.debug('files: %s', files)
-    Log.debug('subdirs: %s', subdirs)
-    Log.debug('language: %s', language)
-    Log.info('root: %s', root)
-    
-    # Scan for video files.
-    VideoFiles.Scan(path, files, mediaList, subdirs, root)
-    
-    for idx, file in enumerate(files):
-        try:
-            Log.info('file: %s', file)
-            # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
+    else:
+        Log.debug('path: %s', path)
+        Log.debug('files: %s', files)
+        Log.debug('subdirs: %s', subdirs)
+        Log.debug('language: %s', language)
+        Log.info('root: %s', root)
+        
+        # Scan for video files.
+        VideoFiles.Scan(path, files, mediaList, subdirs, root)
+        
+        for idx, file in enumerate(files):
+            try:
+                Log.info('file: %s', file)
+                # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
 
-            episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(os.path.basename(file))))
-            if len(episode_data) == 0: continue
-            if (try_get(episode_data, "code", 200) == 404): continue
+                episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(os.path.basename(file))))
+                if len(episode_data) == 0: continue
+                if (try_get(episode_data, "code", 200) == 404): continue
 
-            series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
-            showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
-            Log.info('show title: %s', showTitle)
+                series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
+                showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
+                Log.info('show title: %s', showTitle)
 
-            seasonNumber = 0
-            seasonStr = try_get(episode_data, 'season', None)
-            if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
-            elif episode_data['eptype'] == 'Trailer': seasonNumber = -2 #season -2 for Trailer
-            elif Prefs['SingleSeasonOrdering'] or seasonStr == None:
-                if episode_data['eptype'] == 'Episode': seasonNumber = 1
-                elif episode_data['eptype'] == 'Special': seasonNumber = 0
-            else:
-                seasonNumber = int(seasonStr.split('x')[0])
-                if seasonNumber <= 0 and episode_data['eptype'] == 'Episode': seasonNumber = 1
-                elif seasonNumber > 0 and episode_data['eptype'] == 'Special': seasonNumber = 0
+                seasonNumber = 0
+                seasonStr = try_get(episode_data, 'season', None)
+                if episode_data['eptype'] == 'Credits': seasonNumber = -1 #season -1 for OP/ED
+                elif episode_data['eptype'] == 'Trailer': seasonNumber = -2 #season -2 for Trailer
+                elif Prefs['SingleSeasonOrdering'] or seasonStr == None:
+                    if episode_data['eptype'] == 'Episode': seasonNumber = 1
+                    elif episode_data['eptype'] == 'Special': seasonNumber = 0
+                else:
+                    seasonNumber = int(seasonStr.split('x')[0])
+                    if seasonNumber <= 0 and episode_data['eptype'] == 'Episode': seasonNumber = 1
+                    elif seasonNumber > 0 and episode_data['eptype'] == 'Special': seasonNumber = 0
 
-            if seasonNumber == 0 and Prefs['IncludeSpecials'] == False: continue
-            if seasonNumber < 0 and Prefs['IncludeOther'] == False: continue #Ignore this by choice.
+                if seasonNumber == 0 and Prefs['IncludeSpecials'] == False: continue
+                if seasonNumber < 0 and Prefs['IncludeOther'] == False: continue #Ignore this by choice.
 
-            if (try_get(series_data, "ismovie", 0) == 1 and seasonNumber >= 1): continue # Ignore movies in preference for Shoko Movie Scanner, but keep specials as Plex sees specials as duplicate
-            Log.info('season number: %s', seasonNumber)
-            episodeNumber = int(episode_data['epnumber'])
-            Log.info('episode number: %s', episodeNumber)
+                if (try_get(series_data, "ismovie", 0) == 1 and seasonNumber >= 1): continue # Ignore movies in preference for Shoko Movie Scanner, but keep specials as Plex sees specials as duplicate
+                Log.info('season number: %s', seasonNumber)
+                episodeNumber = int(episode_data['epnumber'])
+                Log.info('episode number: %s', episodeNumber)
 
-            vid = Media.Episode(showTitle, seasonNumber, episodeNumber)
-            Log.info('vid: %s', vid)
-            vid.parts.append(file)
-            mediaList.append(vid)
-        except Exception as e:
-            Log.error("Error in Scan: '%s'" % e)
-            continue
-    
-    Stack.Scan(path, files, mediaList, subdirs)
+                vid = Media.Episode(showTitle, seasonNumber, episodeNumber)
+                Log.info('vid: %s', vid)
+                vid.parts.append(file)
+                mediaList.append(vid)
+            except Exception as e:
+                Log.error("Error in Scan: '%s'" % e)
+                continue
+        
+        Stack.Scan(path, files, mediaList, subdirs)
 
 
 def try_get(arr, idx, default=""):
