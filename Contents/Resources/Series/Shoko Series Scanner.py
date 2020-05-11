@@ -133,7 +133,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
             Log.info('Completed subfolder scan: %s', full_path)
             Log.info(''.ljust(100, '='))
 
-    else:
+    if files:
         Log.debug('path: %s', path)
         Log.debug('files: %s', files)
         Log.debug('subdirs: %s', subdirs)
