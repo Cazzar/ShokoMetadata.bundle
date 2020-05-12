@@ -95,7 +95,6 @@ def GetApiKey():
 
 
 def Scan(path, files, mediaList, subdirs, language=None, root=None):
-
     Log.debug('path: %s', path)
     Log.debug('files: %s', files)
 
@@ -160,9 +159,9 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
 
             reverse_path = list(reversed(path.split(os.sep)))
             
-            Log.info(''.ljust(100, '='))
+            Log.info('=' * 100)
             Log.info('Started subfolder scan: %s', full_path)
-            Log.info(''.ljust(100, '='))
+            Log.info('=' * 100)
 
             subdir_dirs, subdir_files = [], []
 
@@ -185,12 +184,12 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 if grouping_dir in subdirs:
                     subdirs.remove(grouping_dir)  #Prevent group folders from being called by Plex normal call to Scan()
                 Log.info("CALLING SCAN FOR FILES IN CURRENT FOLDER")
-                Scan(path, sorted(subdir_files), mediaList, [], language=language, root=root) 
+                Scan(path, sorted(subdir_files), mediaList, [], language, root) 
                 # relative path for dir or it will group multiple series into one as before and no empty subdirs array because they will be scanned afterwards.
             
-            Log.info(''.ljust(100, '='))
+            Log.info('=' * 100)
             Log.info('Completed subfolder scan: %s', full_path)
-            Log.info(''.ljust(100, '='))
+            Log.info('=' * 100)
 
 
 def try_get(arr, idx, default=""):
