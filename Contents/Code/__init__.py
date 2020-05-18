@@ -75,15 +75,28 @@ class ShokoCommonAgent:
         # http://127.0.0.1:8111/api/serie/search?query=Clannad&level=1&apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579
 
         if movie:
-            filename = media.filename.split('%2F')[-1]
+            if media.filename:
+                filename = media.filename.split('%2F')[-1]
 
-            episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (filename))
-            movie_data = HttpReq("api/serie/fromep?id=%s" % (episode_data['id']))
-            
-            score = 100
-            title = movie_data['name'] + ' - ' + episode_data['name']
-            meta = MetadataSearchResult('%s' % (episode_data['id']), title, try_get(episode_data, 'year', None), score, lang)
-            results.Append(meta)
+                episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (filename))
+                movie_data = HttpReq("api/serie/fromep?id=%s" % (episode_data['id']))
+
+                score = 100 if movie_data['name'] == name else 85  # TODO: Improve this to respect synonyms./
+                title = movie_data['name'] + ' - ' + episode_data['name']
+                meta = MetadataSearchResult('%s' % (episode_data['id']), title, try_get(episode_data, 'year', None), score, lang)
+                results.Append(meta)
+
+            else: # For manual searches
+                prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=%d&ismovie=1" % (urllib.quote(name.encode('utf8')), 2, Prefs['Fuzzy']))
+
+                for result in prelimresults:
+                    for episode in result['eps']:
+                        title = result['name'] + ' - ' + episode['name']
+                        if title == name: score = 100 # Check if full name matches (Series name + episode name)
+                        elif result['name'] == name: score = 90 # Check if series name matches
+                        else: score = 80
+                        meta = MetadataSearchResult('%s' % (episode['id']), title, try_get(episode, 'year', None), score, lang)
+                        results.Append(meta)
 
         else:
             prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=%d" % (urllib.quote(name.encode('utf8')), 1, Prefs['Fuzzy']))
@@ -116,7 +129,10 @@ class ShokoCommonAgent:
             series = HttpReq("api/serie/fromep?id=%s&level=3&allpics=1&tagfilter=%d" % (aid, flags))
             movie_episode_data = HttpReq("api/ep?id=%s" % (aid))
 
-            aid = series['id']
+            aid = try_get(series, 'id', None)
+            if not aid:
+                Log('Error! Series not found.')
+                return
 
             if movie_episode_data['name'] == 'Complete Movie':
                 movie_name = series['name']
