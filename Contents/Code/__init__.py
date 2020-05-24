@@ -78,7 +78,7 @@ class ShokoCommonAgent:
             if media.filename:
                 filename = media.filename.split('%2F')[-1]
 
-                episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (filename))
+                episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(filename.encode('utf8')))
                 movie_data = HttpReq("api/serie/fromep?id=%s" % (episode_data['id']))
 
                 score = 100 if movie_data['name'] == name else 85  # TODO: Improve this to respect synonyms./
@@ -128,7 +128,6 @@ class ShokoCommonAgent:
         if movie:
             series = HttpReq("api/serie/fromep?id=%s&level=3&allpics=1&tagfilter=%d" % (aid, flags))
             movie_episode_data = HttpReq("api/ep?id=%s" % (aid))
-
             aid = try_get(series, 'id', None)
             if not aid:
                 Log('Error! Series not found.')
