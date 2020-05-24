@@ -76,7 +76,7 @@ class ShokoCommonAgent:
 
         if movie:
             if media.filename:
-                filename = media.filename.split('%2F')[-1]
+                filename = os.path.basename(urllib.unquote(media.filename))
 
                 episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(filename.encode('utf8')))
                 movie_data = HttpReq("api/serie/fromep?id=%s" % (episode_data['id']))
