@@ -78,7 +78,7 @@ class ShokoCommonAgent:
             if media.filename:
                 filename = os.path.basename(urllib.unquote(media.filename))
 
-                episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(filename.encode('utf8')))
+                episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(filename.encode('utf8'))))
                 movie_data = HttpReq("api/serie/fromep?id=%s" % (episode_data['id']))
 
                 score = 100 if movie_data['name'] == name else 85  # TODO: Improve this to respect synonyms./
