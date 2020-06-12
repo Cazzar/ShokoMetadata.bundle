@@ -74,15 +74,40 @@ class ShokoCommonAgent:
 
         # http://127.0.0.1:8111/api/serie/search?query=Clannad&level=1&apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579
 
-        prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=%d" % (urllib.quote(name.encode('utf8')), 1, Prefs['Fuzzy']))
+        if movie:
+            if media.filename:
+                filename = os.path.basename(urllib.unquote(media.filename))
 
-        for result in prelimresults:
-            #for result in group['series']:
-            score = 100 if result['name'] == name else 85  # TODO: Improve this to respect synonyms./
-            meta = MetadataSearchResult('%s' % result['id'], result['name'], try_get(result, 'year', None), score, lang)
-            results.Append(meta)
+                episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(filename.encode('utf8'))))
+                movie_data = HttpReq("api/serie/fromep?id=%s" % (episode_data['id']))
 
-            # results.Sort('score', descending=True)
+                score = 100 if movie_data['name'] == name else 85  # TODO: Improve this to respect synonyms./
+                title = movie_data['name'] + ' - ' + episode_data['name']
+                meta = MetadataSearchResult('%s' % (episode_data['id']), title, try_get(episode_data, 'year', None), score, lang)
+                results.Append(meta)
+
+            else: # For manual searches
+                prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=%d&ismovie=1" % (urllib.quote(name.encode('utf8')), 2, Prefs['Fuzzy']))
+
+                for result in prelimresults:
+                    for episode in result['eps']:
+                        title = result['name'] + ' - ' + episode['name']
+                        if title == name: score = 100 # Check if full name matches (Series name + episode name)
+                        elif result['name'] == name: score = 90 # Check if series name matches
+                        else: score = 80
+                        meta = MetadataSearchResult('%s' % (episode['id']), title, try_get(episode, 'year', None), score, lang)
+                        results.Append(meta)
+
+        else:
+            prelimresults = HttpReq("api/serie/search?query=%s&level=%d&fuzzy=%d" % (urllib.quote(name.encode('utf8')), 1, Prefs['Fuzzy']))
+
+            for result in prelimresults:
+                #for result in group['series']:
+                score = 100 if result['name'] == name else 85  # TODO: Improve this to respect synonyms./
+                meta = MetadataSearchResult('%s' % result['id'], result['name'], try_get(result, 'year', None), score, lang)
+                results.Append(meta)
+
+                # results.Sort('score', descending=True)
 
     def Update(self, metadata, media, lang, force, movie):
         Log("update(%s)" % metadata.id)
@@ -100,18 +125,37 @@ class ShokoCommonAgent:
         flags = flags | Prefs['hideUsefulMiscTags'] << 3 #0b01000 : Hide Useful Miscellaneous Tags
         flags = flags | Prefs['hideSpoilerTags']    << 4 #0b10000 : Hide Plot Spoiler Tags
 
+        if movie:
+            series = HttpReq("api/serie/fromep?id=%s&level=3&allpics=1&tagfilter=%d" % (aid, flags))
+            movie_episode_data = HttpReq("api/ep?id=%s" % (aid))
+            aid = try_get(series, 'id', None)
+            if not aid:
+                Log('Error! Series not found.')
+                return
 
-        series = HttpReq("api/serie?id=%s&level=3&allpics=1&tagfilter=%d" % (aid, flags))
+            if movie_episode_data['name'] == 'Complete Movie':
+                movie_name = series['name']
+                movie_sort_name = series['name']
+            else:
+                movie_name = series['name'] + ' - ' + movie_episode_data['name']
+                movie_sort_name = series['name'] + ' - ' + str(movie_episode_data['epnumber']).zfill(3)
 
-        # build metadata on the TV show.
-        #metadata.summary = re.sub(LINK_REGEX, r'\1', try_get(series, 'summary'))
-        metadata.summary = summary_sanitizer(try_get(series, 'summary'))
-        metadata.title = series['name']
-        metadata.rating = float(series['rating'])
-        year = try_get(series, "year", None)
+            metadata.summary = summary_sanitizer(try_get(series, 'summary'))
+            metadata.title = movie_name
+            metadata.title_sort = movie_sort_name
+            metadata.rating = float(movie_episode_data['rating'])
+            year = try_get(movie_episode_data, "year", try_get(series, "year", None))
 
-        #if year:
-        #    metadata.year = int(year)
+            if year:
+                metadata.year = int(year)
+
+        else:
+            series = HttpReq("api/serie?id=%s&level=3&allpics=1&tagfilter=%d" % (aid, flags))
+
+            metadata.summary = summary_sanitizer(try_get(series, 'summary'))
+            metadata.title = series['name']
+            metadata.rating = float(series['rating'])
+
 
         tags = []
         for tag in try_get(series, 'tags', []):
