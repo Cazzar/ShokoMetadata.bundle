@@ -402,7 +402,7 @@ class ShokoCommonAgent:
 
             #adapted from: https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/fb5c77a60c925dcfd60e75a945244e07ee009e7c/Contents/Code/__init__.py#L41-L45
             if Prefs["themeMusic"]:
-                for tid in links["tvdb"]:
+                for tid in try_get(series_data['shoko']['IDs'],'TvDB', []):
                     if THEME_URL % tid not in metadata.themes:
                         try:
                             metadata.themes[THEME_URL % tid] = Proxy.Media(HTTP.Request(THEME_URL % tid))
