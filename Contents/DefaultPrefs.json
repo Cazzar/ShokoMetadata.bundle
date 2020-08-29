@@ -37,6 +37,13 @@
     },
 
     {
+        "id": "EpisodeTitleLanguagePreference",
+        "label": "The preferred languages for episode titles, separated by a comma",
+        "type": "text",
+        "default": "EN, X-JAT"
+    },
+
+    {
         "id": "Fuzzy",
         "label": "Use fuzzy searching in Shoko for matching the titles.",
         "type": "bool",

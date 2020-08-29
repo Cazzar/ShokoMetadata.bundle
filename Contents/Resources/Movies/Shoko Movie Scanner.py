@@ -81,8 +81,11 @@ def GetApiKey():
     global API_KEY
 
     if not API_KEY:
-        data = '{"user":"%s", "pass":"%s", "device":"%s"}' % (
-            Prefs['Username'], Prefs['Password'] if Prefs['Password'] != None else '', 'Shoko Series Scanner For Plex')
+        data = json.dumps({
+            'user': Prefs['Username'],
+            'pass': Prefs['Password'] if Prefs['Password'] != None else '',
+            'device': 'Shoko Movie Scanner For Plex'
+        })
         resp = HttpPost('api/auth', data)['apikey']
         Log.info( "Got API KEY: %s", resp)
         API_KEY = resp
@@ -92,43 +95,108 @@ def GetApiKey():
 
 
 def Scan(path, files, mediaList, subdirs, language=None, root=None):
-
+    
     Log.debug('path: %s', path)
     Log.debug('files: %s', files)
-    Log.debug('subdirs: %s', subdirs)
 
-    # Scan for video files.
-    VideoFiles.Scan(path, files, mediaList, subdirs, root)
-    
-    for idx, file in enumerate(files):
-        try:
-            Log.info('file: %s', file)
-            # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
+    for subdir in subdirs:
+        Log.info('[folder] ' + os.path.relpath(subdir, root))
 
-            episode_data = HttpReq("api/ep/getbyfilename?filename=%s" % (urllib.quote(os.path.basename(file))))
-            if len(episode_data) == 0: continue
-            if (try_get(episode_data, "code", 200) == 404): continue
+    if files:
 
-            series_data = HttpReq("api/serie/fromep?id=%d&nocast=1&notag=1" % episode_data['id'])
-            if not (try_get(series_data, "ismovie", 0)) or (episode_data['eptype'] != 'Episode'): continue # Skip series and extras
-            showTitle = series_data['name'].encode("utf-8") #no idea why I need to do this.
-            Log.info('show title: %s', showTitle)
+        # Scan for video files.
+        VideoFiles.Scan(path, files, mediaList, subdirs, root)
 
-            seasonYear = episode_data['year']
-            Log.info('season year: %s', seasonYear)
+        for idx, file in enumerate(files):
+            try:
+                Log.info('file: %s', file)
+                # Get file data using filename
+                # http://127.0.0.1:8111/api/v3/File/PathEndsWith/Clannad/%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
+                file = os.path.join(os.path.split(os.path.dirname(file))[-1], os.path.basename(file)) # Parent folder + file name
+                file_data = HttpReq('api/v3/File/PathEndsWith/%s' % (urllib.quote(file)))
+                if len(file_data) == 0: continue # Skip if file data is not found
 
-            vid = Media.Movie(showTitle, int(seasonYear))
-            Log.info('vid: %s', vid)
-            vid.parts.append(file)
-            mediaList.append(vid)
-        except Exception as e:
-            Log.error("Error in Scan: '%s'" % e)
-            continue
+                # Take the first file. As we are searching with both parent folder and filename, there should be only one result.
+                if len(file_data) > 1:
+                    Log.info('File search has more than 1 result. HOW DID YOU DO IT?')
+                file_data = file_data[0]
 
-    Log.info('Scan', 'stack media')
-    Stack.Scan(path, files, mediaList, subdirs)
-    Log.info('Scan', 'media list %s', mediaList)
+                # Ignore unrecognized files
+                if 'SeriesIDs' not in file_data:
+                    Log.info('Unrecognized file. Skipping!')
+                    continue
 
+                # Get series data
+                series_id = file_data['SeriesIDs'][0]['SeriesID']['ID'] # Taking the first matching anime. Not supporting multi-anime linked files for now. eg. Those two Toradora/One Piece episodes
+                series_data = {}
+                series_data['shoko'] = HttpReq('api/v3/Series/%s' % series_id) # http://127.0.0.1:8111/api/v3/Series/24
+                series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id) # # http://127.0.0.1:8111/api/v3/Series/24/AniDB
+
+                # Get preferred/overriden title. Preferred title is the one shown in Desktop.
+                show_title = series_data['shoko']['Name'].encode('utf-8') #no idea why I need to do this.
+                Log.info('Show Title: %s', show_title)
+
+                # Get episode data
+                ep_id = file_data['SeriesIDs'][0]['EpisodeIDs'][0]['ID'] # Taking the first link, again
+                ep_data = {}
+                ep_data['anidb'] = HttpReq('api/v3/Episode/%s/AniDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/AniDB
+
+                # Get year from air date
+                air_date = try_get(ep_data['anidb'], 'AirDate', None)
+                season_year = air_date.split('-')[0] if air_date is not None else None
+                Log.info('season year: %s', season_year)
+
+                vid = Media.Movie(show_title, int(season_year))
+                Log.info('vid: %s', vid)
+                vid.parts.append(file)
+                mediaList.append(vid)
+            except Exception as e:
+                Log.error("Error in Scan: '%s'" % e)
+                continue
+
+        Stack.Scan(path, files, mediaList, subdirs)
+
+    if not path: # If current folder is root folder
+        Log.info('Manual call to group folders')
+        subfolders = subdirs[:]
+
+        while subfolders: # subfolder scanning queue
+            full_path = subfolders.pop(0)
+            path = os.path.relpath(full_path, root)
+
+            reverse_path = list(reversed(path.split(os.sep)))
+            
+            Log.info('=' * 100)
+            Log.info('Started subfolder scan: %s', full_path)
+            Log.info('=' * 100)
+
+            subdir_dirs, subdir_files = [], []
+
+            for file in os.listdir(full_path):
+                path_item = os.path.join(full_path, file) 
+                if os.path.isdir(path_item):
+                    subdir_dirs.append(path_item)
+                else:
+                    subdir_files.append(path_item)
+
+            Log.info('Sub-directories: %s', subdir_dirs)
+            Log.info('Files: %s', subdir_files)
+
+            for dir in subdir_dirs:
+                Log.info('[Added for scanning] ' + dir) # Add the subfolder to subfolder scanning queue)
+                subfolders.append(dir)
+
+            grouping_dir = full_path.rsplit(os.sep, full_path.count(os.sep)-1-root.count(os.sep))[0]
+            if subdir_files and (len(reverse_path)>1 or subdir_dirs):
+                if grouping_dir in subdirs:
+                    subdirs.remove(grouping_dir)  #Prevent group folders from being called by Plex normal call to Scan()
+                Log.info('CALLING SCAN FOR FILES IN CURRENT FOLDER')
+                Scan(path, sorted(subdir_files), mediaList, [], language, root) 
+                # relative path for dir or it will group multiple series into one as before and no empty subdirs array because they will be scanned afterwards.
+
+            Log.info('=' * 100)
+            Log.info('Completed subfolder scan: %s', full_path)
+            Log.info('=' * 100)
 
 def try_get(arr, idx, default=""):
     try:
