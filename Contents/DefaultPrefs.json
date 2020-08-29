@@ -30,6 +30,13 @@
     },
 
     {
+        "id": "SingleSeasonOrdering",
+        "label": "Use single season ordering (IMPORTANT: Make sure the setting in scanner matches with this!)",
+        "type": "bool",
+        "default": false
+    },
+
+    {
         "id": "Fuzzy",
         "label": "Use fuzzy searching in Shoko for matching the titles.",
         "type": "bool",
