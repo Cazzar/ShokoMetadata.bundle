@@ -45,7 +45,7 @@ def GetApiKey():
         data = json.dumps({
             'user': Prefs['Username'],
             'pass': Prefs['Password'] if Prefs['Password'] != None else '',
-            'device': 'hoko Metadata For Plex'
+            'device': 'Shoko Metadata For Plex'
         })
         resp = HttpPost('api/auth', data)['apikey']
         Log.Debug('Got API KEY: %s' % resp)
