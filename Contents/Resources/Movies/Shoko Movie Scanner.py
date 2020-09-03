@@ -112,8 +112,8 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 Log.info('file: %s', file)
                 # Get file data using filename
                 # http://127.0.0.1:8111/api/v3/File/PathEndsWith/Clannad/%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
-                file = os.path.join(os.path.split(os.path.dirname(file))[-1], os.path.basename(file)) # Parent folder + file name
-                file_data = HttpReq('api/v3/File/PathEndsWith/%s' % (urllib.quote(file)))
+                filename = os.path.join(os.path.split(os.path.dirname(file))[-1], os.path.basename(file)) # Parent folder + file name
+                file_data = HttpReq('api/v3/File/PathEndsWith/%s' % (urllib.quote(filename)))
                 if len(file_data) == 0: continue # Skip if file data is not found
 
                 # Take the first file. As we are searching with both parent folder and filename, there should be only one result.
