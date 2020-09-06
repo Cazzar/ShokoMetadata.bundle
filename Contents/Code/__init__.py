@@ -397,8 +397,8 @@ class ShokoCommonAgent:
                 if air_date is not None:
                     episode_obj.originally_available_at = datetime.strptime(air_date, '%Y-%m-%d').date()
 
-                if Prefs['customThumbs'] and 'Thumbnail' in ep_data['tvdb']:
-                   self.metadata_add(episode_obj.thumbs, [ep_data['tvdb']['Thumbnail']])
+                if Prefs['customThumbs']:
+                   self.metadata_add(episode_obj.thumbs, [try_get(try_get(ep_data['tvdb'], 0, {}), 'Thumbnail', {})])
 
             #adapted from: https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/fb5c77a60c925dcfd60e75a945244e07ee009e7c/Contents/Code/__init__.py#L41-L45
             if Prefs["themeMusic"]:
