@@ -149,6 +149,10 @@ class ShokoCommonAgent:
             if year:
                 metadata.year = int(year)
 
+            collections = []
+            if series['localsize'] > 1:
+                collections.append(series['name'])
+
         else:
             series = HttpReq("api/serie?id=%s&level=3&allpics=1&tagfilter=%d" % (aid, flags))
 
@@ -156,6 +160,13 @@ class ShokoCommonAgent:
             metadata.title = series['name']
             metadata.rating = float(series['rating'])
 
+            groupinfo = HttpReq("api/serie/groups?id=%s&level=2" % aid);
+            collections = []
+            for group in groupinfo:
+                if (len(group['series']) > 1):
+                    collections.append(group['name'])
+
+        metadata.collections = collections
 
         tags = []
         for tag in try_get(series, 'tags', []):
@@ -166,15 +177,6 @@ class ShokoCommonAgent:
         self.metadata_add(metadata.banners, try_get(series['art'], 'banner', []))
         self.metadata_add(metadata.posters, try_get(series['art'], 'thumb', []))
         self.metadata_add(metadata.art, try_get(series['art'], 'fanart', []))
-
-        groupinfo = HttpReq("api/serie/groups?id=%s&level=2" % aid);
-        collections = []
-        for group in groupinfo:
-            if (len(group['series']) > 1):
-                collections.append(group['name'])
-
-        metadata.collections = collections
-
 
 
         ### Generate general content ratings.
