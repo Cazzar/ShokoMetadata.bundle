@@ -66,8 +66,11 @@ def HttpReq(url, authenticate=True, retry=True):
 
     myheaders = {'Accept': 'application/json'}
     
+    if authenticate:
+        myheaders['apikey'] = GetApiKey()
+    
     try:
-        req = urllib2.Request('http://%s:%s/%s%s' % (Prefs['Hostname'], Prefs['Port'], url, api_string), headers=myheaders)
+        req = urllib2.Request('http://%s:%s/%s' % (Prefs['Hostname'], Prefs['Port'], url), headers=myheaders)
         return json.load(urllib2.urlopen(req))
     except Exception, e:
         if not retry:
