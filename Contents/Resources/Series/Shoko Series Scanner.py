@@ -177,7 +177,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 if season < 0 and Prefs['IncludeOther'] == False: continue
 
                 # Ignore movies in preference for Shoko Movie Scanner, but keep specials as Plex sees specials as duplicate
-                if (try_get(series_data['anidb'], 'SeriesType', -1) == 0 and season >= 1):
+                if (try_get(series_data['anidb'], 'SeriesType', '-1') == '0' and season >= 1):
                     Log.info('It\'s a movie. Skipping!')
                     continue
 

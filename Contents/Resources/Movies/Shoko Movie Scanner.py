@@ -135,7 +135,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 series_data['shoko'] = HttpReq('api/v3/Series/%s' % series_id) # http://127.0.0.1:8111/api/v3/Series/24
                 series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id) # # http://127.0.0.1:8111/api/v3/Series/24/AniDB
                 
-                if try_get(series_data['anidb'], 'SeriesType', -1) != 0:
+                if try_get(series_data['anidb'], 'SeriesType', '-1') != '0':
                     Log.info('It\'s not a movie. Skipping!')
                     continue
 
