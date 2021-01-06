@@ -88,12 +88,13 @@ class ShokoCommonAgent:
         if movie:
             if media.filename:
                 filename = urllib.unquote(media.filename)
+                filename = os.path.join(os.path.split(os.path.dirname(filename))[-1], os.path.basename(filename)) # Parent folder + file name
 
                 Log('Searching movie %s - %s' % (name, filename))
 
                 # Get file data using filename
                 # http://127.0.0.1:8111/api/v3/File/PathEndsWith/%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
-                file_data = HttpReq('api/v3/File/PathEndsWith/%s' % filename)
+                file_data = HttpReq('api/v3/File/PathEndsWith/%s' % (urllib.quote(filename)))
 
                 # Take the first file. As we are searching with both parent folder and filename, there should be only one result.
                 if len(file_data) > 1:
