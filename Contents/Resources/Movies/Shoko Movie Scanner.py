@@ -134,6 +134,10 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 series_data = {}
                 series_data['shoko'] = HttpReq('api/v3/Series/%s' % series_id) # http://127.0.0.1:8111/api/v3/Series/24
                 series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id) # # http://127.0.0.1:8111/api/v3/Series/24/AniDB
+                
+                if try_get(series_data['anidb'], 'SeriesType', -1) != 0:
+                    Log.info('It\'s not a movie. Skipping!')
+                    continue
 
                 # Get preferred/overriden title. Preferred title is the one shown in Desktop.
                 show_title = series_data['shoko']['Name'].encode('utf-8') #no idea why I need to do this.
