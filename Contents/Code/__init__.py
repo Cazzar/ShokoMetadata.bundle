@@ -14,15 +14,6 @@ from lxml import etree
 API_KEY = ''
 PLEX_HOST = ''
 
-EpisodeType = {
-    'Episode': 1,
-    'Credits': 2,
-    'Special': 3,
-    'Trailer': 4,
-    'Parody': 5,
-    'Other': 6
-}
-
 #this is from https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/master/Contents/Code/__init__.py
 THEME_URL = 'http://tvthemes.plexapp.com/%s.mp3'
 LINK_REGEX = r"https?:\/\/\w+.\w+(?:\/?\w+)? \[([^\]]+)\]"
@@ -121,9 +112,9 @@ class ShokoCommonAgent:
                 title = None
                 for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
                     lang = lang.strip()
-                    title = ep_titles[lang.upper()]
+                    title = ep_titles[lang.lower()]
                     if title is not None: break
-                if title is None: title = ep_titles['EN'] # If not found, fallback to EN title
+                if title is None: title = ep_titles['en'] # If not found, fallback to EN title
                 full_title = series_data['shoko']['Name'] + ' - ' + title
 
                 # Get year from air date
@@ -165,9 +156,9 @@ class ShokoCommonAgent:
                         title = None
                         for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
                             lang = lang.strip()
-                            title = ep_titles[lang.upper()]
+                            title = ep_titles[lang.lower()]
                             if title is not None: break
-                        if title is None: title = ep_titles['EN'] # If not found, fallback to EN title
+                        if title is None: title = ep_titles['en'] # If not found, fallback to EN title
                         full_title = series_data['shoko']['Name'] + ' - ' + title
 
                         # Get year from air date
@@ -232,7 +223,7 @@ class ShokoCommonAgent:
             for item in ep_data['anidb']['Titles']:
                 ep_titles[item['Language']] = item['Name']
 
-            title = try_get(ep_titles, 'EN', None)
+            title = try_get(ep_titles, 'en', None)
             if title in ['Complete Movie', 'Web']:
                 movie_name = series_data['anidb']['Name']
                 movie_sort_name = series_data['anidb']['Name']
@@ -241,9 +232,9 @@ class ShokoCommonAgent:
                 title = None
                 for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
                     lang = lang.strip()
-                    title = ep_titles[lang.upper()]
+                    title = ep_titles[lang.lower()]
                     if title is not None: break
-                if title is None: title = ep_titles['EN'] # If not found, fallback to EN title
+                if title is None: title = ep_titles['en'] # If not found, fallback to EN title
                 movie_name = series_data['shoko']['Name'] + ' - ' + title
                 movie_sort_name = series_data['shoko']['Name'] + ' - ' + str(ep_data['anidb']['EpisodeNumber']).zfill(3)
 
@@ -352,20 +343,20 @@ class ShokoCommonAgent:
                 ep_data['tvdb'] = HttpReq('api/v3/Episode/%s/TvDB' % ep_id)
 
                 ep_type = ep_data['anidb']['Type']
-                if ep_type not in [1, 3, 2, 4]: # Episode, Special, Credits, Trailer
+                if ep_type in ['Unknown', 'Parody']:
                     continue
 
                 # Get season number
                 season = 0
-                if ep_type == EpisodeType['Episode']: season = 1
-                elif ep_type == EpisodeType['Special']: season = 0
-                elif ep_type == EpisodeType['Credits']: season = -1
-                elif ep_type == EpisodeType['Trailer']: season = -2
+                if ep_type == 'Normal': season = 1
+                elif ep_type == 'Special': season = 0
+                elif ep_type == 'ThemeSong': season = -1
+                elif ep_type == 'Trailer': season = -2
                 if not Prefs['SingleSeasonOrdering'] and len(ep_data['tvdb']) != 0:
                     ep_data['tvdb'] = ep_data['tvdb'][0] # Take the first link, as explained before
                     season = ep_data['tvdb']['Season']
-                    if season <= 0 and ep_type == EpisodeType['Episode']: season = 1
-                    elif season > 0 and ep_type == EpisodeType['Special']: season = 0
+                    if season <= 0 and ep_type == 'Normal': season = 1
+                    elif season > 0 and ep_type == 'Special': season = 0
 
                 Log('Season: %s', season)
                 Log('Episode: %s', ep_data['anidb']['EpisodeNumber'])
@@ -381,9 +372,9 @@ class ShokoCommonAgent:
                 title = None
                 for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
                     lang = lang.strip()
-                    title = ep_titles[lang.upper()]
+                    title = ep_titles[lang.lower()]
                     if title is not None: break
-                if title is None: title = ep_titles['EN'] # If not found, fallback to EN title
+                if title is None: title = ep_titles['en'] # If not found, fallback to EN title
                 episode_obj.title = title
 
                 Log('Episode Title: %s', episode_obj.title)

@@ -15,15 +15,6 @@ Prefs = {
 
 API_KEY = ''
 
-EpisodeType = {
-    'Episode': 1,
-    'Credits': 2,
-    'Special': 3,
-    'Trailer': 4,
-    'Parody': 5,
-    'Other': 6
-}
-
 ### Log + LOG_PATH calculated once for all calls ###
 import logging, logging.handlers                        #
 RootLogger     = logging.getLogger('main')
@@ -160,24 +151,24 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 # Get season number
                 ep_type = ep_data['anidb']['Type']
                 season = 0
-                if ep_type == EpisodeType['Episode']: season = 1
-                elif ep_type == EpisodeType['Special']: season = 0
-                elif ep_type == EpisodeType['Credits']: season = -1
-                elif ep_type == EpisodeType['Trailer']: season = -2
+                if ep_type == 'Normal': season = 1
+                elif ep_type == 'Special': season = 0
+                elif ep_type == 'ThemeSong': season = -1
+                elif ep_type == 'Trailer': season = -2
                 if not Prefs['SingleSeasonOrdering']:
                     ep_data['tvdb'] = HttpReq('api/v3/Episode/%s/TvDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/TvDB
                     ep_data['tvdb'] = try_get(ep_data['tvdb'], 0, None) # Take the first link, as explained before
                     if ep_data['tvdb'] is not None:
                         season = ep_data['tvdb']['Season']
-                        if season <= 0 and ep_type == EpisodeType['Episode']: season = 1
-                        elif season > 0 and ep_type == EpisodeType['Special']: season = 0
+                        if season <= 0 and ep_type == 'Normal': season = 1
+                        elif season > 0 and ep_type == 'Special': season = 0
 
                 # Ignore these by choice.
                 if season == 0 and Prefs['IncludeSpecials'] == False: continue
                 if season < 0 and Prefs['IncludeOther'] == False: continue
 
                 # Ignore movies in preference for Shoko Movie Scanner, but keep specials as Plex sees specials as duplicate
-                if (try_get(series_data['anidb'], 'SeriesType', '-1') == '0' and season >= 1):
+                if (try_get(series_data['anidb'], 'Type', 'Unknown') == 'Movie' and season >= 1):
                     Log.info('It\'s a movie. Skipping!')
                     continue
 
