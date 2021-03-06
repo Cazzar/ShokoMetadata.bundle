@@ -58,7 +58,7 @@ def HttpReq(url, authenticate=True, retry=True):
     Log("Requesting: %s" % url)
 
     if authenticate:
-        myheaders['apikey'] = GetApiKey()
+        myheaders = {'apikey': GetApiKey()}
 
     try:
         return JSON.ObjectFromString(
@@ -412,10 +412,10 @@ class ShokoCommonAgent:
                 url = 'http://{host}:{port}{relativeURL}'.format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=art_url)
                 idx = try_get(art, 'index', 0)
                 Log("[metadata_add] :: Adding metadata %s (index %d)" % (url, idx))
-                meta[art['url']] = Proxy.Media(HTTP.Request(url).content, idx)
-                valid.append(art['url'])
+                meta[url] = Proxy.Media(HTTP.Request(url).content, idx)
+                valid.append(url)
             except Exception as e:
-                Log("[metadata_add] :: Invalid URL given (%s), skipping" % art['url'])
+                Log("[metadata_add] :: Invalid URL given (%s), skipping" % url)
                 Log(e)
 
         meta.validate_keys(valid)
