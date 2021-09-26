@@ -255,6 +255,10 @@ class ShokoCommonAgent:
             if air_date is not None:
                 metadata.originally_available_at = datetime.strptime(air_date, '%Y-%m-%d').date()
 
+            collections = []
+            if series_data['shoko']['Size'] > 1:
+                collections.append(series_data['shoko']['Name'])
+
         else:
             # Get series data
             series_data = {}
@@ -286,7 +290,6 @@ class ShokoCommonAgent:
         # Get group
         groupinfo = HttpReq('api/v3/Series/%s/Group' % aid)
         metadata.collections = [groupinfo['Name']] if groupinfo['Size'] > 1 else []
-
 
         ### Generate general content ratings.
         ### VERY rough approximation to: https://www.healthychildren.org/English/family-life/Media/Pages/TV-Ratings-A-Guide-for-Parents.aspx
