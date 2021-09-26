@@ -415,7 +415,7 @@ class ShokoCommonAgent:
                 meta[url] = Proxy.Media(HTTP.Request(url).content, idx)
                 valid.append(url)
             except Exception as e:
-                Log("[metadata_add] :: Invalid URL given (%s), skipping" % url)
+                Log("[metadata_add] :: Invalid URL given (%s), skipping" % try_get(art, 'url', ''))
                 Log(e)
 
         meta.validate_keys(valid)
