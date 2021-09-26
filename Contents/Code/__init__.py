@@ -131,7 +131,7 @@ class ShokoCommonAgent:
                 Log('Searching movie %s' % name)
 
                 # Search for series using the name
-                prelimresults = HttpReq('api/v3/Series/Search/%s?fuzzy=%s' % (urllib.quote(name.encode('utf8')), Prefs['Fuzzy'])) # http://127.0.0.1:8111/api/v3/Series/Search/Clannad?fuzzy=true
+                prelimresults = HttpReq('api/v3/Series/Search/%s?fuzzy=%s' % (urllib.quote_plus(name.encode('utf8')), Prefs['Fuzzy'])) # http://127.0.0.1:8111/api/v3/Series/Search/Clannad?fuzzy=true
 
                 for result in prelimresults:
                     # Get episode list using series ID
@@ -174,7 +174,7 @@ class ShokoCommonAgent:
 
         else:
             # Search for series using the name
-            prelimresults = HttpReq('api/v3/Series/Search/%s?fuzzy=%s' % (urllib.quote(name.encode('utf8')), Prefs['Fuzzy'])) # http://127.0.0.1:8111/api/v3/Series/Search/Clannad?fuzzy=true
+            prelimresults = HttpReq('api/v3/Series/Search/%s?fuzzy=%s' % (urllib.quote_plus(name.encode('utf8')), Prefs['Fuzzy'])) # http://127.0.0.1:8111/api/v3/Series/Search/Clannad?fuzzy=true
 
             for result in prelimresults:
                 # Get series data
