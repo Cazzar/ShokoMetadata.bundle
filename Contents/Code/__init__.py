@@ -322,7 +322,7 @@ class ShokoCommonAgent:
             Log('Assumed tv rating to be: %s' % metadata.content_rating)
 
         # Get cast
-        cast = HttpReq('api/v3/Series/%s/Cast' % aid) # http://127.0.0.1:8111/api/v3/Series/24/Cast
+        cast = HttpReq('api/v3/Series/%s/Cast?roleType=Seiyuu' % aid) # http://127.0.0.1:8111/api/v3/Series/24/Cast?roleType=Seiyuu
         metadata.roles.clear()
         Log('Cast')
         for role in cast:
