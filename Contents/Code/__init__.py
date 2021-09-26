@@ -333,6 +333,12 @@ class ShokoCommonAgent:
             image = role['Staff']['Image']
             meta_role.photo = 'http://{host}:{port}/api/v3/Image/{source}/{type}/{id}'.format(host=Prefs['Hostname'], port=Prefs['Port'], source=image['Source'], type=image['Type'], id=image['ID'])
 
+        # Get studio
+        studio = HttpReq('api/v3/Series/%s/Cast?roleType=Studio' % aid) # http://127.0.0.1:8111/api/v3/Series/24/Cast?roleType=Studio
+        studio = try_get(studio, 0, False)
+        if studio:
+            Log('Studio: %s', studio['Staff']['Name'])
+            metadata.studio = studio['Staff']['Name']
 
         if not movie:
             # Get episode list using series ID
