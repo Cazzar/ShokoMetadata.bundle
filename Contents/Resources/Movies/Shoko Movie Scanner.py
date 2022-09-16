@@ -98,7 +98,7 @@ def GetApiKey():
 
 
 def Scan(path, files, mediaList, subdirs, language=None, root=None):
-    
+
     Log.debug('path: %s', path)
     Log.debug('files: %s', files)
 
