@@ -123,8 +123,8 @@ class ShokoCommonAgent:
                 full_title = series_data['shoko']['Name'] + ' - ' + title
 
                 # Get year from air date
-                air_date = try_get(ep_data['anidb'], 'AirDate', None)
-                year = air_date.split('-')[0] if air_date is not None else None
+                airdate = try_get(ep_data['anidb'], 'AirDate', '0001-01-01')
+                year = airdate.split('-')[0] if airdate != '0001-01-01' else None
 
                 score = 100 if series_data['shoko']['Name'] == name else 100 - int(result['Distance'] * 100) # TODO: Improve this to respect synonyms./
 
@@ -167,8 +167,8 @@ class ShokoCommonAgent:
                         full_title = series_data['shoko']['Name'] + ' - ' + title
 
                         # Get year from air date
-                        air_date = try_get(ep_data['anidb'], 'AirDate', None)
-                        year = air_date.split('-')[0] if air_date is not None else None
+                        airdate = try_get(ep_data['anidb'], 'AirDate', '0001-01-01')
+                        year = airdate.split('-')[0] if airdate != '0001-01-01' else None
 
                         if title == name: score = 100 # Check if full name matches (Series name + episode name)
                         elif result['Name'] == name: score = 90 # Check if series name matches
@@ -189,8 +189,8 @@ class ShokoCommonAgent:
                 series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id)
 
                 # Get year from air date
-                air_date = try_get(series_data['anidb'], 'AirDate', None)
-                year = air_date.split('-')[0] if air_date is not None else None
+                airdate = try_get(series_data['anidb'], 'AirDate', '0001-01-01')
+                year = airdate.split('-')[0] if airdate != '0001-01-01' else None
 
                 score = 100 if series_data['shoko']['Name'] == name else 100 - int(result['Distance'] * 100) # TODO: Improve this to respect synonyms./
 
@@ -395,9 +395,9 @@ class ShokoCommonAgent:
                     Log('Description: %s' % episode_obj.summary)
 
                 # Get air date
-                air_date = try_get(ep_data['anidb'], 'AirDate', None)
-                if air_date is not None:
-                    episode_obj.originally_available_at = datetime.strptime(air_date, '%Y-%m-%d').date()
+                airdate = try_get(ep_data['anidb'], 'AirDate', '0001-01-01')
+                if airdate != '0001-01-01':
+                    episode_obj.originally_available_at = datetime.strptime(airdate, '%Y-%m-%d').date()
 
                 if Prefs['customThumbs']:
                    self.metadata_add(episode_obj.thumbs, [try_get(try_get(ep_data['tvdb'], 0, {}), 'Thumbnail', {})])
