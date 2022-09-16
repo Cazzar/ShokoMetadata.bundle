@@ -129,7 +129,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 file_data = file_data[0]
                 
                 # Ignore unrecognized files
-                if 'SeriesIDs' not in file_data:
+                if 'SeriesIDs' not in file_data or file_data['SeriesIDs'] is None:
                     Log.info('Unrecognized file. Skipping!')
                     continue
 
