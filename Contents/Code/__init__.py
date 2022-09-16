@@ -92,6 +92,11 @@ class ShokoCommonAgent:
                     Log('File search has more than 1 result. HOW DID YOU DO IT?')
                 file_data = file_data[0]
 
+                # Ignore unrecognized files
+                if 'SeriesIDs' not in file_data or file_data['SeriesIDs'] is None:
+                    Log('Unrecognized file. Skipping!')
+                    return
+
                 # Get series data
                 series_id = file_data['SeriesIDs'][0]['SeriesID']['ID'] # Taking the first matching anime. Not supporting multi-anime linked files for now. eg. Those two Toradora/One Piece episodes
                 series_data = {}
