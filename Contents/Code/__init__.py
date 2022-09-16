@@ -246,14 +246,10 @@ class ShokoCommonAgent:
             metadata.rating = float(ep_data['anidb']['Rating']['Value']/100)
             
             # Get year from air date
-            air_date = try_get(ep_data['anidb'], 'AirDate', None)
-            year = air_date.split('-')[0] if air_date is not None else None
-
-            if year:
-                metadata.year = int(year)
-
-            if air_date is not None:
-                metadata.originally_available_at = datetime.strptime(air_date, '%Y-%m-%d').date()
+            airdate = try_get(ep_data['anidb'], 'AirDate', '0001-01-01')
+            if airdate != '0001-01-01':
+                metadata.year = int(airdate.split('-')[0])
+                metadata.originally_available_at = datetime.strptime(airdate, '%Y-%m-%d').date()
 
             collections = []
             if series_data['shoko']['Size'] > 1:
@@ -272,9 +268,9 @@ class ShokoCommonAgent:
             metadata.rating = float(series_data['anidb']['Rating']['Value']/100)
 
             # Get air date
-            air_date = try_get(series_data['anidb'], 'AirDate', None)
-            if air_date is not None:
-                metadata.originally_available_at = datetime.strptime(air_date, '%Y-%m-%d').date()
+            airdate = try_get(series_data['anidb'], 'AirDate', '0001-01-01')
+            if airdate != '0001-01-01':
+                metadata.originally_available_at = datetime.strptime(airdate, '%Y-%m-%d').date()
 
         # Get series tags
         series_tags = HttpReq('api/v3/Series/%s/Tags/%d' % (aid, flags)) # http://127.0.0.1:8111/api/v3/Series/24/Tags/0
