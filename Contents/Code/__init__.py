@@ -136,14 +136,16 @@ class ShokoCommonAgent:
             if movie_episode_data['name'] == 'Complete Movie':
                 movie_name = series['name']
                 movie_sort_name = series['name']
+                movie_rating = float(series['rating'])
             else:
                 movie_name = series['name'] + ' - ' + movie_episode_data['name']
                 movie_sort_name = series['name'] + ' - ' + str(movie_episode_data['epnumber']).zfill(3)
+                movie_rating = float(movie_episode_data['rating'])
 
             metadata.summary = summary_sanitizer(try_get(series, 'summary'))
             metadata.title = movie_name
             metadata.title_sort = movie_sort_name
-            metadata.rating = float(movie_episode_data['rating'])
+            metadata.rating = movie_rating
             year = try_get(movie_episode_data, "year", try_get(series, "year", None))
 
             if year:
