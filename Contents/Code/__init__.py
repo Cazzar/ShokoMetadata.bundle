@@ -223,6 +223,21 @@ class ShokoCommonAgent:
             meta_role.role = role['character']
             meta_role.photo = "http://{host}:{port}{relativeURL}".format(host=Prefs['Hostname'], port=Prefs['Port'], relativeURL=role['staff_image'])
 
+        # Add studio information
+        # Plex does not support multiple studios, we take the first studio found.
+        cast_v3 = HttpReq("api/v3/series/%s/Cast?" % aid)
+        for element in cast_v3:
+            if element['RoleName'] == "Studio":
+                metadata.studio = element['Staff']['Name']
+                break
+
+        # If there is no "Animation Work" on AniDB we use "Work"
+        if metadata.studio == None:
+            for element in cast_v3:
+                if element['RoleDetails'] == "Work":
+                    metadata.studio = element['Staff']['Name']
+                    break
+
 
         if not movie:
             for ep in series['eps']:
