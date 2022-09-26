@@ -123,8 +123,8 @@ class ShokoCommonAgent:
                 full_title = series_data['shoko']['Name'] + ' - ' + title
 
                 # Get year from air date
-                airdate = try_get(ep_data['anidb'], 'AirDate', '0001-01-01')
-                year = airdate.split('-')[0] if airdate != '0001-01-01' else None
+                airdate = try_get(ep_data['anidb'], 'AirDate', None)
+                year = airdate.split('-')[0] if airdate is not None else None
 
                 score = 100 if series_data['shoko']['Name'] == name else 100 - int(result['Distance'] * 100) # TODO: Improve this to respect synonyms./
 
@@ -167,8 +167,8 @@ class ShokoCommonAgent:
                         full_title = series_data['shoko']['Name'] + ' - ' + title
 
                         # Get year from air date
-                        airdate = try_get(ep_data['anidb'], 'AirDate', '0001-01-01')
-                        year = airdate.split('-')[0] if airdate != '0001-01-01' else None
+                        airdate = try_get(ep_data['anidb'], 'AirDate', None)
+                        year = airdate.split('-')[0] if airdate is not None else None
 
                         if title == name: score = 100 # Check if full name matches (Series name + episode name)
                         elif result['Name'] == name: score = 90 # Check if series name matches
@@ -189,8 +189,8 @@ class ShokoCommonAgent:
                 series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id)
 
                 # Get year from air date
-                airdate = try_get(series_data['anidb'], 'AirDate', '0001-01-01')
-                year = airdate.split('-')[0] if airdate != '0001-01-01' else None
+                airdate = try_get(series_data['anidb'], 'AirDate', None)
+                year = airdate.split('-')[0] if airdate is not None else None
 
                 score = 100 if series_data['shoko']['Name'] == name else 100 - int(result['Distance'] * 100) # TODO: Improve this to respect synonyms./
 
@@ -251,8 +251,8 @@ class ShokoCommonAgent:
             metadata.rating = float(ep_data['anidb']['Rating']['Value']/100)
             
             # Get year from air date
-            airdate = try_get(ep_data['anidb'], 'AirDate', '0001-01-01')
-            if airdate != '0001-01-01':
+            airdate = try_get(ep_data['anidb'], 'AirDate', None)
+            if airdate is not None:
                 metadata.year = int(airdate.split('-')[0])
                 metadata.originally_available_at = datetime.strptime(airdate, '%Y-%m-%d').date()
 
