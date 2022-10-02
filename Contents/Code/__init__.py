@@ -338,7 +338,7 @@ class ShokoCommonAgent:
         studio = HttpReq('api/v3/Series/%s/Cast?roleType=Studio' % aid) # http://127.0.0.1:8111/api/v3/Series/24/Cast?roleType=Studio
         studio = try_get(studio, 0, False)
         if not studio:
-            studio = HttpReq('api/v3/Series/%s/Cast?roleDetails=Work' % aid) # http://127.0.0.1:8111/api/v3/Series/24/Cast?roleDetails=Work
+            studio = HttpReq('api/v3/Series/%s/Cast?roleType=Staff&roleDetails=Work' % aid) # http://127.0.0.1:8111/api/v3/Series/24/Cast?roleType=Staff&roleDetails=Work
             studio = try_get(studio, 0, False)
         if studio:
             Log('Studio: %s', studio['Staff']['Name'])
