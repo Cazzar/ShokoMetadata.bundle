@@ -296,7 +296,7 @@ class ShokoCommonAgent:
         ### VERY rough approximation to: https://www.healthychildren.org/English/family-life/Media/Pages/TV-Ratings-A-Guide-for-Parents.aspx
 
         if Prefs["Ratings"]:
-            if 'Kodomo' in tags:
+            if 'kodomo' in tags:
                 metadata.content_rating = 'TV-Y'
 
             if 'Mina' in tags:
@@ -314,11 +314,11 @@ class ShokoCommonAgent:
             if 'Seinen' in tags:
                 metadata.content_rating = 'TV-MA'
 
-            if 'Mature' in tags:
+            if 'borderline porn' in tags:
                 metadata.content_rating = 'TV-MA'
 
-            if '18 Restricted' in tags:
-                metadata.content_rating = 'TV-R'
+            if '18 restricted' in tags:
+                metadata.content_rating = 'X'
 
             Log('Assumed tv rating to be: %s' % metadata.content_rating)
 
