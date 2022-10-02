@@ -337,6 +337,9 @@ class ShokoCommonAgent:
         # Get studio
         studio = HttpReq('api/v3/Series/%s/Cast?roleType=Studio' % aid) # http://127.0.0.1:8111/api/v3/Series/24/Cast?roleType=Studio
         studio = try_get(studio, 0, False)
+        if not studio:
+            studio = HttpReq('api/v3/Series/%s/Cast?roleDetails=Work' % aid) # http://127.0.0.1:8111/api/v3/Series/24/Cast?roleDetails=Work
+            studio = try_get(studio, 0, False)
         if studio:
             Log('Studio: %s', studio['Staff']['Name'])
             metadata.studio = studio['Staff']['Name']
@@ -401,6 +404,22 @@ class ShokoCommonAgent:
 
                 if Prefs['customThumbs']:
                    self.metadata_add(episode_obj.thumbs, [try_get(try_get(ep_data['tvdb'], 0, {}), 'Thumbnail', {})])
+
+                # Get writers (as original work)
+                writers = HttpReq('api/v3/Series/%s/Cast?roleType=SourceWork' % aid) # http://127.0.0.1:8111/api/v3/Series/24/Cast?roleType=SourceWork
+                writers = try_get(writers, 0, False)
+                if writers:
+                    Log('Writers: %s', writers['Staff']['Name'])
+                    writer = episode_obj.writers.new()
+                    writer.name = writers['Staff']['Name']
+
+                # Get directors
+                directors = HttpReq('api/v3/Series/%s/Cast?roleType=Director' % aid) # http://127.0.0.1:8111/api/v3/Series/24/Cast?roleType=Director
+                directors = try_get(directors, 0, False)
+                if directors:
+                    Log('Directors: %s', directors['Staff']['Name'])
+                    director = episode_obj.directors.new()
+                    director.name = directors['Staff']['Name']
 
             #adapted from: https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/fb5c77a60c925dcfd60e75a945244e07ee009e7c/Contents/Code/__init__.py#L41-L45
             if Prefs["themeMusic"]:
