@@ -296,28 +296,29 @@ class ShokoCommonAgent:
         ### VERY rough approximation to: https://www.healthychildren.org/English/family-life/Media/Pages/TV-Ratings-A-Guide-for-Parents.aspx
 
         if Prefs["Ratings"]:
-            if 'kodomo' in tags:
+            tags_lower = [tag.lower() for tag in tags] # Account for inconsistent capitalization of tags
+            if 'kodomo' in tags_lower:
                 metadata.content_rating = 'TV-Y'
 
-            if 'Mina' in tags:
+            if 'mina' in tags_lower:
                 metadata.content_rating = 'TV-G'
 
-            if 'Shoujo' in tags:
+            if 'shoujo' in tags_lower:
                 metadata.content_rating = 'TV-14'
 
-            if 'Shounen' in tags:
+            if 'shounen' in tags_lower:
                 metadata.content_rating = 'TV-14'
 
-            if 'Josei' in tags:
+            if 'josei' in tags_lower:
                 metadata.content_rating = 'TV-14'
 
-            if 'Seinen' in tags:
+            if 'seinen' in tags_lower:
                 metadata.content_rating = 'TV-MA'
 
-            if 'borderline porn' in tags:
+            if 'borderline porn' in tags_lower:
                 metadata.content_rating = 'TV-MA'
 
-            if '18 restricted' in tags:
+            if '18 restricted' in tags_lower:
                 metadata.content_rating = 'X'
 
             Log('Assumed tv rating to be: %s' % metadata.content_rating)
