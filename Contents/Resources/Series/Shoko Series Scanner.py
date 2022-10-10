@@ -9,7 +9,7 @@ Prefs = {
     'Username': 'Default',
     'Password': '',
     'IncludeSpecials': True,
-    'IncludeOther': True,
+    'IncludeOther': False,
     'SingleSeasonOrdering': False
 }
 
