@@ -273,8 +273,8 @@ class ShokoCommonAgent:
             metadata.rating = float(series_data['anidb']['Rating']['Value']/100)
 
             # Get air date
-            airdate = try_get(series_data['anidb'], 'AirDate', '0001-01-01')
-            if airdate != '0001-01-01':
+            airdate = try_get(series_data['anidb'], 'AirDate', None)
+            if airdate is not None:
                 metadata.originally_available_at = datetime.strptime(airdate, '%Y-%m-%d').date()
 
         # Get series tags
@@ -357,8 +357,6 @@ class ShokoCommonAgent:
                 ep_data['tvdb'] = HttpReq('api/v3/Episode/%s/TvDB' % ep_id)
 
                 ep_type = ep_data['anidb']['Type']
-                if ep_type in ['Unknown', 'Parody']:
-                    continue
 
                 # Get season number
                 season = 0
@@ -366,6 +364,8 @@ class ShokoCommonAgent:
                 elif ep_type == 'Special': season = 0
                 elif ep_type == 'ThemeSong': season = -1
                 elif ep_type == 'Trailer': season = -2
+                elif ep_type == 'Parody': season = -3
+                elif ep_type == 'Unknown': season = -4
                 if not Prefs['SingleSeasonOrdering'] and len(ep_data['tvdb']) != 0:
                     ep_data['tvdb'] = ep_data['tvdb'][0] # Take the first link, as explained before
                     season = ep_data['tvdb']['Season']
@@ -394,13 +394,16 @@ class ShokoCommonAgent:
                 Log('Episode Title: %s', episode_obj.title)
 
                 # Get description
-                if try_get(ep_data['anidb'], 'Description') != 'Episode Overview not Available':
+                if try_get(ep_data['anidb'], 'Description') != '':
                     episode_obj.summary = summary_sanitizer(try_get(ep_data['anidb'], 'Description'))
-                    Log('Description: %s' % episode_obj.summary)
+                    Log('Description (AniDB): %s' % episode_obj.summary)
+                elif ep_data['tvdb'] and try_get(ep_data['tvdb'], 'Description') != None: 
+                    episode_obj.summary = summary_sanitizer(try_get(ep_data['tvdb'], 'Description'))
+                    Log('Description (TvDB): %s' % episode_obj.summary)
 
                 # Get air date
-                airdate = try_get(ep_data['anidb'], 'AirDate', '0001-01-01')
-                if airdate != '0001-01-01':
+                airdate = try_get(ep_data['anidb'], 'AirDate', None)
+                if airdate is not None:
                     episode_obj.originally_available_at = datetime.strptime(airdate, '%Y-%m-%d').date()
 
                 if Prefs['customThumbs']:

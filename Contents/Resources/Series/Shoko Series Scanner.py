@@ -156,6 +156,8 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 elif ep_type == 'Special': season = 0
                 elif ep_type == 'ThemeSong': season = -1
                 elif ep_type == 'Trailer': season = -2
+                elif ep_type == 'Parody': season = -3
+                elif ep_type == 'Unknown': season = -4
                 if not Prefs['SingleSeasonOrdering']:
                     ep_data['tvdb'] = HttpReq('api/v3/Episode/%s/TvDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/TvDB
                     ep_data['tvdb'] = try_get(ep_data['tvdb'], 0, None) # Take the first link, as explained before
