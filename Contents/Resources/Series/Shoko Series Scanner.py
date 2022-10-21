@@ -163,8 +163,6 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                     ep_data['tvdb'] = try_get(ep_data['tvdb'], 0, None) # Take the first link, as explained before
                     if ep_data['tvdb'] is not None:
                         season = ep_data['tvdb']['Season']
-                        if season <= 0 and ep_type == 'Normal': season = 1
-                        elif season > 0 and ep_type == 'Special': season = 0
 
                 # Ignore these by choice.
                 if season == 0 and Prefs['IncludeSpecials'] == False: continue

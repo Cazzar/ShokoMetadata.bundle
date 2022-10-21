@@ -370,8 +370,6 @@ class ShokoCommonAgent:
                 if not Prefs['SingleSeasonOrdering'] and len(ep_data['tvdb']) != 0:
                     ep_data['tvdb'] = ep_data['tvdb'][0] # Take the first link, as explained before
                     season = ep_data['tvdb']['Season']
-                    if season <= 0 and ep_type == 'Normal': season = 1
-                    elif season > 0 and ep_type == 'Special': season = 0
 
                 Log('Season: %s', season)
                 Log('Episode: %s', ep_data['anidb']['EpisodeNumber'])
