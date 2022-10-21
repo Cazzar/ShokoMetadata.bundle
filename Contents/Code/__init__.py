@@ -361,6 +361,7 @@ class ShokoCommonAgent:
 
                 # Get season number
                 season = 0
+                episode_number = None
                 if ep_type == 'Normal': season = 1
                 elif ep_type == 'Special': season = 0
                 elif ep_type == 'ThemeSong': season = -1
@@ -370,11 +371,15 @@ class ShokoCommonAgent:
                 if not Prefs['SingleSeasonOrdering'] and len(ep_data['tvdb']) != 0:
                     ep_data['tvdb'] = ep_data['tvdb'][0] # Take the first link, as explained before
                     season = ep_data['tvdb']['Season']
+                    episode_number = ep_data['tvdb']['Number']
+
+                if episode_number is None:
+                    episode_number = ep_data['anidb']['EpisodeNumber']
 
                 Log('Season: %s', season)
-                Log('Episode: %s', ep_data['anidb']['EpisodeNumber'])
+                Log('Episode: %s', episode_number)
 
-                episode_obj = metadata.seasons[season].episodes[ep_data['anidb']['EpisodeNumber']]
+                episode_obj = metadata.seasons[season].episodes[episode_number]
 
                 # Make a dict of language -> title for all titles in anidb data
                 ep_titles = {}

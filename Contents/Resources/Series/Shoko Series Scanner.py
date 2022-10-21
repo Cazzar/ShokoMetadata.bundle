@@ -175,7 +175,11 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
 
                 Log.info('Season: %s', season)
 
-                episode_number = ep_data['anidb']['EpisodeNumber']
+                if ep_data['tvdb'] is not None:
+                    episode_number = ep_data['tvdb']['Number']
+                else:
+                    episode_number = ep_data['anidb']['EpisodeNumber']
+
                 Log.info('Episode Number: %s', episode_number)
 
                 vid = Media.Episode(show_title, season, episode_number)
