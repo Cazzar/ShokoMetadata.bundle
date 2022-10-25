@@ -393,6 +393,12 @@ class ShokoCommonAgent:
                     title = ep_titles[lang.lower()]
                     if title is not None: break
                 if title is None: title = ep_titles['en'] # If not found, fallback to EN title
+
+                # TvDB episode title fallback
+                SingleEntryTitles = ['Complete Movie', 'Music Video', 'OAD', 'OVA', 'Short Movie', 'TV Special', 'Web'] # AniDB titles used for single entries which are ambiguous
+                if (title in SingleEntryTitles or title.startswith('Episode ')) and try_get(ep_data['tvdb'], 'Title') != '':
+                    title = try_get(ep_data['tvdb'], 'Title')
+
                 episode_obj.title = title
 
                 Log('Episode Title: %s', episode_obj.title)
