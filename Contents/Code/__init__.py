@@ -436,15 +436,15 @@ class ShokoCommonAgent:
                     director.name = directors['Staff']['Name']
 
             # Set custom negative season names
-            for season_num in metadata.seasons:
-                season_title = None
-                if season_num == '-1': season_title = 'Themes'
-                elif season_num == '-2': season_title = 'Trailers'
-                elif season_num == '-3': season_title = 'Parodies'
-                elif season_num == '-4': season_title = 'Other'
-                if int(season_num) < 0 and season_title is not None:
-                    Log('Renaming season: %s to %s' % (season_num, season_title))
-                    metadata.seasons[season_num].title = season_title
+            # for season_num in metadata.seasons:
+            #    season_title = None
+            #    if season_num == '-1': season_title = 'Themes'
+            #    elif season_num == '-2': season_title = 'Trailers'
+            #    elif season_num == '-3': season_title = 'Parodies'
+            #    elif season_num == '-4': season_title = 'Other'
+            #    if int(season_num) < 0 and season_title is not None:
+            #        Log('Renaming season: %s to %s' % (season_num, season_title))
+            #        metadata.seasons[season_num].title = season_title
 
             #adapted from: https://github.com/plexinc-agents/PlexThemeMusic.bundle/blob/fb5c77a60c925dcfd60e75a945244e07ee009e7c/Contents/Code/__init__.py#L41-L45
             if Prefs["themeMusic"]:
