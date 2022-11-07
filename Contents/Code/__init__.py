@@ -126,7 +126,7 @@ class ShokoCommonAgent:
                 airdate = try_get(ep_data['anidb'], 'AirDate', None)
                 year = airdate.split('-')[0] if airdate is not None else None
 
-                score = 100 if series_data['shoko']['Name'] == name else 100 - int(result['Distance'] * 100) # TODO: Improve this to respect synonyms./
+                score = 100 # TODO: Improve this to respect synonyms./
 
                 meta = MetadataSearchResult(str(ep_id), full_title, year, score, lang)
                 results.Append(meta)
