@@ -403,7 +403,7 @@ class ShokoCommonAgent:
                         series_titles[item['Language']] = item['Name']
                                    
                     title = series_titles[lang.lower()] # Get series title according to the preference above
-                    if title is None: title = ep_titles['en'] # If not found, fallback to EN series title
+                    if title is None: title = series_titles['en'] # If not found, fallback to EN series title
 
                 # TvDB episode title fallback
                 if title.startswith('Episode ') and try_get(ep_data['tvdb'], 'Title') != '':
