@@ -394,9 +394,19 @@ class ShokoCommonAgent:
                     if title is not None: break
                 if title is None: title = ep_titles['en'] # If not found, fallback to EN title
 
-                # TvDB episode title fallback
+                # Replace Ambiguous Titles with Series Title
                 SingleEntryTitles = ['Complete Movie', 'Music Video', 'OAD', 'OVA', 'Short Movie', 'TV Special', 'Web'] # AniDB titles used for single entries which are ambiguous
-                if (title in SingleEntryTitles or title.startswith('Episode ')) and try_get(ep_data['tvdb'], 'Title') != '':
+                if title in SingleEntryTitles:
+                    # Make a dict of language -> title for all series titles in anidb data
+                    series_titles = {}
+                    for item in series_data['anidb']['Titles']:
+                        series_titles[item['Language']] = item['Name']
+                                   
+                    title = series_titles[lang.lower()] # Get series title according to the preference above
+                    if title is None: title = ep_titles['en'] # If not found, fallback to EN series title
+
+                # TvDB episode title fallback
+                if title.startswith('Episode ') and try_get(ep_data['tvdb'], 'Title') != '':
                     title = try_get(ep_data['tvdb'], 'Title')
 
                 episode_obj.title = title
@@ -435,7 +445,7 @@ class ShokoCommonAgent:
                     director = episode_obj.directors.new()
                     director.name = directors['Staff']['Name']
 
-            # Set custom negative season names
+            # Set custom negative season names (To be enabled if Plex fixes blocking issue)
             # for season_num in metadata.seasons:
             #    season_title = None
             #    if season_num == '-1': season_title = 'Themes'
