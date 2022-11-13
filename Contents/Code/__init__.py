@@ -117,7 +117,7 @@ class ShokoCommonAgent:
                 title = None
                 for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
                     lang = lang.strip()
-                    if lang.lower() in ep_titles: title = ep_titles[lang.lower()]
+                    title = try_get(ep_titles, lang.lower(), None)
                     if title is not None: break
                 if title is None: title = ep_titles['en'] # If not found, fallback to EN title
                 full_title = series_data['shoko']['Name'] + ' - ' + title
@@ -161,7 +161,7 @@ class ShokoCommonAgent:
                         title = None
                         for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
                             lang = lang.strip()
-                            if lang.lower() in ep_titles: title = ep_titles[lang.lower()]
+                            title = try_get(ep_titles, lang.lower(), None)
                             if title is not None: break
                         if title is None: title = ep_titles['en'] # If not found, fallback to EN title
                         full_title = series_data['shoko']['Name'] + ' - ' + title
@@ -237,7 +237,7 @@ class ShokoCommonAgent:
                 title = None
                 for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
                     lang = lang.strip()
-                    if lang.lower() in ep_titles: title = ep_titles[lang.lower()]
+                    title = try_get(ep_titles, lang.lower(), None)
                     if title is not None: break
                 if title is None: title = ep_titles['en'] # If not found, fallback to EN title
                 movie_name = series_data['shoko']['Name'] + ' - ' + title
@@ -390,7 +390,7 @@ class ShokoCommonAgent:
                 title = None
                 for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
                     lang = lang.strip()
-                    if lang.lower() in ep_titles: title = ep_titles[lang.lower()]
+                    title = try_get(ep_titles, lang.lower(), None)
                     if title is not None: break
                 if title is None: title = ep_titles['en'] # If not found, fallback to EN title
 
@@ -406,11 +406,11 @@ class ShokoCommonAgent:
                     singleTitle = title
                     for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
                         lang = lang.strip()                                   
-                        if lang.lower() in series_titles: title = series_titles[lang.lower()]
+                        title = try_get(series_titles, lang.lower(), title)
                         if title is not singleTitle: break
-                    if title is singleTitle:
-                        if 'en' in series_titles: title = series_titles['en'] # If not found, fallback to EN series title
-                    else: # Fallback to TvDB title as a last resort
+                    if title is singleTitle: # If not found, fallback to EN series title
+                        title = try_get(series_titles, 'en', title)
+                    if title is singleTitle: # Fallback to TvDB title as a last resort
                         if try_get(ep_data['tvdb'], 'Title') != '': title = try_get(ep_data['tvdb'], 'Title')
 
                 # TvDB episode title fallback
