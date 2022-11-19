@@ -144,47 +144,50 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 Log.info('Show Title: %s', show_title)
 
                 # Get episode data
-                ep_id = file_data['SeriesIDs'][0]['EpisodeIDs'][0]['ID'] # Taking the first link, again
-                ep_data = {}
-                ep_data['anidb'] = HttpReq('api/v3/Episode/%s/AniDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/AniDB
+                ep_multi = len(file_data['SeriesIDs'][0]['EpisodeIDs']) # Account for multi episode files
+                for ep in range(ep_multi):
+                    ep_id = file_data['SeriesIDs'][0]['EpisodeIDs'][ep]['ID']
+                    ep_data = {}
+                    ep_data['anidb'] = HttpReq('api/v3/Episode/%s/AniDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/AniDB
 
-                # Get season number
-                ep_type = ep_data['anidb']['Type']
-                season = 0
-                if ep_type == 'Normal': season = 1
-                elif ep_type == 'Special': season = 0
-                elif ep_type == 'ThemeSong': season = -1
-                elif ep_type == 'Trailer': season = -2
-                elif ep_type == 'Parody': season = -3
-                elif ep_type == 'Unknown': season = -4
-                if not Prefs['SingleSeasonOrdering']:
-                    ep_data['tvdb'] = HttpReq('api/v3/Episode/%s/TvDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/TvDB
-                    ep_data['tvdb'] = try_get(ep_data['tvdb'], 0, None) # Take the first link, as explained before
-                    if ep_data['tvdb'] is not None:
-                        season = ep_data['tvdb']['Season']
+                    # Get season number
+                    ep_type = ep_data['anidb']['Type']
+                    season = 0
+                    if ep_type == 'Normal': season = 1
+                    elif ep_type == 'Special': season = 0
+                    elif ep_type == 'ThemeSong': season = -1
+                    elif ep_type == 'Trailer': season = -2
+                    elif ep_type == 'Parody': season = -3
+                    elif ep_type == 'Unknown': season = -4
+                    if not Prefs['SingleSeasonOrdering']:
+                        ep_data['tvdb'] = HttpReq('api/v3/Episode/%s/TvDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/TvDB
+                        ep_data['tvdb'] = try_get(ep_data['tvdb'], 0, None) # Take the first link, as explained before
+                        if ep_data['tvdb'] is not None:
+                            season = ep_data['tvdb']['Season']
 
-                # Ignore these by choice.
-                if season == 0 and Prefs['IncludeSpecials'] == False: continue
-                if season < 0 and Prefs['IncludeOther'] == False: continue
+                    # Ignore these by choice.
+                    if season == 0 and Prefs['IncludeSpecials'] == False: continue
+                    if season < 0 and Prefs['IncludeOther'] == False: continue
 
-                # Ignore movies in preference for Shoko Movie Scanner, but keep specials as Plex sees specials as duplicate
-                if (try_get(series_data['anidb'], 'Type', 'Unknown') == 'Movie' and season >= 1):
-                    Log.info('It\'s a movie. Skipping!')
-                    continue
+                    # Ignore movies in preference for Shoko Movie Scanner, but keep specials as Plex sees specials as duplicate
+                    if (try_get(series_data['anidb'], 'Type', 'Unknown') == 'Movie' and season >= 1 and Prefs['CombineSeriesAndMovies'] == False):
+                        Log.info('It\'s a movie. Skipping!')
+                        continue
 
-                Log.info('Season: %s', season)
+                    Log.info('Season: %s', season)
 
-                if ep_data['tvdb'] is not None and not Prefs['SingleSeasonOrdering']:
-                    episode_number = ep_data['tvdb']['Number']
-                else:
-                    episode_number = ep_data['anidb']['EpisodeNumber']
+                    if ep_data['tvdb'] is not None and not Prefs['SingleSeasonOrdering']:
+                        episode_number = ep_data['tvdb']['Number']
+                    else:
+                        episode_number = ep_data['anidb']['EpisodeNumber']
 
-                Log.info('Episode Number: %s', episode_number)
+                    Log.info('Episode Number: %s', episode_number)
 
-                vid = Media.Episode(show_title, season, episode_number)
-                Log.info('vid: %s', vid)
-                vid.parts.append(file)
-                mediaList.append(vid)
+                    vid = Media.Episode(show_title, season, episode_number)
+                    if ep_multi > 1: vid.display_offset = (ep * 100) / ep_multi # required for multi episode files
+                    Log.info('vid: %s', vid)
+                    vid.parts.append(file)
+                    mediaList.append(vid)
             except Exception as e:
                 Log.error("Error in Scan: '%s'" % e)
                 continue

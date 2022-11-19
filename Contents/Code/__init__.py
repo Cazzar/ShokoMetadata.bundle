@@ -104,32 +104,34 @@ class ShokoCommonAgent:
                 series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id) # http://127.0.0.1:8111/api/v3/Series/24/AniDB
 
                 # Get episode data
-                ep_id = file_data['SeriesIDs'][0]['EpisodeIDs'][0]['ID'] # Taking the first
-                ep_data = {}
-                ep_data['anidb'] = HttpReq('api/v3/Episode/%s/AniDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/AniDB
+                ep_multi = len(file_data['SeriesIDs'][0]['EpisodeIDs']) # Account for multi episode files
+                for ep in range(ep_multi):
+                    ep_id = file_data['SeriesIDs'][0]['EpisodeIDs'][ep]['ID']
+                    ep_data = {}
+                    ep_data['anidb'] = HttpReq('api/v3/Episode/%s/AniDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/AniDB
 
-                # Make a dict of language -> title for all titles in anidb data
-                ep_titles = {}
-                for item in ep_data['anidb']['Titles']:
-                    ep_titles[item['Language']] = item['Name']
+                    # Make a dict of language -> title for all titles in anidb data
+                    ep_titles = {}
+                    for item in ep_data['anidb']['Titles']:
+                        ep_titles[item['Language']] = item['Name']
 
-                # Get episode title according to the preference
-                title = None
-                for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
-                    lang = lang.strip()
-                    title = try_get(ep_titles, lang.lower(), None)
-                    if title is not None: break
-                if title is None: title = ep_titles['en'] # If not found, fallback to EN title
-                full_title = series_data['shoko']['Name'] + ' - ' + title
+                    # Get episode title according to the preference
+                    title = None
+                    for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
+                        lang = lang.strip()
+                        title = try_get(ep_titles, lang.lower(), None)
+                        if title is not None: break
+                    if title is None: title = ep_titles['en'] # If not found, fallback to EN title
+                    full_title = series_data['shoko']['Name'] + ' - ' + title
 
-                # Get year from air date
-                airdate = try_get(ep_data['anidb'], 'AirDate', None)
-                year = airdate.split('-')[0] if airdate is not None else None
+                    # Get year from air date
+                    airdate = try_get(ep_data['anidb'], 'AirDate', None)
+                    year = airdate.split('-')[0] if airdate is not None else None
 
-                score = 100 # TODO: Improve this to respect synonyms./
+                    score = 100 # TODO: Improve this to respect synonyms./
 
-                meta = MetadataSearchResult(str(ep_id), full_title, year, score, lang)
-                results.Append(meta)
+                    meta = MetadataSearchResult(str(ep_id), full_title, year, score, lang)
+                    results.Append(meta)
 
             else: # For manual searches
 
