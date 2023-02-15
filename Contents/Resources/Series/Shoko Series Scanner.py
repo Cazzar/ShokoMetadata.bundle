@@ -149,9 +149,15 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                     ep_id = file_data['SeriesIDs'][0]['EpisodeIDs'][ep]['ID']
                     ep_data = {}
                     ep_data['anidb'] = HttpReq('api/v3/Episode/%s/AniDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/AniDB
+                    ep_data['tvdb'] = HttpReq('api/v3/Episode/%s/TvDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/TvDB
+                    
+                    # Get episode type
+                    ep_type = ep_data['anidb']['Type']
+
+                    # Ignore multi episode files of differing types (anidb episode relations)
+                    if ep > 0 and ep_type != ep_data['anidb']['Type']: continue
 
                     # Get season number
-                    ep_type = ep_data['anidb']['Type']
                     season = 0
                     if ep_type == 'Normal': season = 1
                     elif ep_type == 'Special': season = 0
@@ -160,7 +166,6 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                     elif ep_type == 'Parody': season = -3
                     elif ep_type == 'Unknown': season = -4
                     if not Prefs['SingleSeasonOrdering']:
-                        ep_data['tvdb'] = HttpReq('api/v3/Episode/%s/TvDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/TvDB
                         ep_data['tvdb'] = try_get(ep_data['tvdb'], 0, None) # Take the first link, as explained before
                         if ep_data['tvdb'] is not None:
                             season = ep_data['tvdb']['Season']
@@ -176,7 +181,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
 
                     Log.info('Season: %s', season)
 
-                    if ep_data['tvdb'] is not None and not Prefs['SingleSeasonOrdering']:
+                    if not Prefs['SingleSeasonOrdering'] and ep_data['tvdb'] is not None:
                         episode_number = ep_data['tvdb']['Number']
                     else:
                         episode_number = ep_data['anidb']['EpisodeNumber']

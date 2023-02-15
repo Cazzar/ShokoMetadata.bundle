@@ -356,9 +356,10 @@ class ShokoCommonAgent:
                 # Get episode data
                 ep_id = episode['IDs']['ID']
                 ep_data = {}
-                ep_data['anidb'] = HttpReq('api/v3/Episode/%s/AniDB' % ep_id)
-                ep_data['tvdb'] = HttpReq('api/v3/Episode/%s/TvDB' % ep_id)
+                ep_data['anidb'] = HttpReq('api/v3/Episode/%s/AniDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/AniDB
+                ep_data['tvdb'] = HttpReq('api/v3/Episode/%s/TvDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/TvDB
 
+                # Get episode type
                 ep_type = ep_data['anidb']['Type']
 
                 # Get season number
