@@ -350,7 +350,7 @@ class ShokoCommonAgent:
 
         if not movie:
             # Get episode list using series ID
-            episodes = HttpReq('api/v3/Series/%s/Episode' % aid) # http://127.0.0.1:8111/api/v3/Series/212/Episode
+            episodes = HttpReq('api/v3/Series/%s/Episode?pageSize=0' % aid) # http://127.0.0.1:8111/api/v3/Series/212/Episode?pageSize=0
 
             for episode in episodes['List']:
                 # Get episode data
