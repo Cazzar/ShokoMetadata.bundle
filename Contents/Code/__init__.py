@@ -183,7 +183,7 @@ class ShokoCommonAgent:
             # Search for series using the name
             prelimresults = HttpReq('api/v3/Series/Search?query=%s&fuzzy=%s&limit=10' % (urllib.quote_plus(name.encode('utf8')), Prefs['Fuzzy'])) # http://127.0.0.1:8111/api/v3/Series/Search?query=Clannad&fuzzy=true&limit=10
 
-            for result in prelimresults:
+            for index, result in enumerate(prelimresults):
                 # Get series data
                 series_id = result['IDs']['ID']
                 series_data = {}
@@ -194,7 +194,7 @@ class ShokoCommonAgent:
                 airdate = try_get(series_data['anidb'], 'AirDate', None)
                 year = airdate.split('-')[0] if airdate is not None else None
 
-                score = 100 if series_data['shoko']['Name'] == name else 100 - int(result['Distance'] * 100) # TODO: Improve this to respect synonyms./
+                score = 100 if series_data['shoko']['Name'] == name else 100 - index - int(result['Distance'] * 100)
 
                 meta = MetadataSearchResult(str(series_id), series_data['shoko']['Name'], year, score, lang)
                 results.Append(meta)
