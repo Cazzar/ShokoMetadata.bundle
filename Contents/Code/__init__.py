@@ -403,7 +403,8 @@ class ShokoCommonAgent:
                     # Make a dict of language -> title for all series titles in anidb data
                     series_titles = {}
                     for item in series_data['anidb']['Titles']:
-                        series_titles[item['Language']] = item['Name']
+                        if item['Type'] != 'Short': # Exclude all short titles
+                            series_titles.setdefault(item['Language'], item['Name']) # Use setdefault() to use the first title for each language
                     
                     # Get series title according to the preference
                     singleTitle = title
