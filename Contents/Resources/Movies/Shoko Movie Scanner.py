@@ -144,9 +144,20 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                 Log.info('Show Title: %s', show_title)
 
                 # Get episode data
-                ep_id = file_data['SeriesIDs'][0]['EpisodeIDs'][0]['ID'] # Taking the first link, again
-                ep_data = {}
-                ep_data['anidb'] = HttpReq('api/v3/Episode/%s/AniDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/AniDB
+                series_ids = try_get(file_data['SeriesIDs'], 0, None)
+
+                if series_ids is None:
+                    Log.info('Unrecognized file. Skipping!')
+                    continue
+
+                ep_ids = try_get(series_ids['EpisodeIDs'], 0, None)
+
+                if series_ids is None:
+                    Log.info('Unrecognized file. Skipping!')
+                    continue
+
+                ep_id = ep_ids['ID'] # Taking the first link, again
+                ep_data = {'anidb': HttpReq('api/v3/Episode/%s/AniDB' % ep_id)}
 
                 # Get year from air date
                 air_date = try_get(ep_data['anidb'], 'AirDate', None)
