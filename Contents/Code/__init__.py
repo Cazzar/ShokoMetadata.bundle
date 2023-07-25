@@ -45,8 +45,6 @@ def GetApiKey():
 
     return API_KEY
 
-auth_headers = {'apikey': GetApiKey()}
-
 def HttpPost(url, postdata):
     myheaders = {'Content-Type': 'application/json'}
     return JSON.ObjectFromString(
@@ -54,12 +52,11 @@ def HttpPost(url, postdata):
                      data=postdata).content)
 
 
-def HttpReq(url, authenticate=True, retry=True):
+def HttpReq(url, retry=True):
     global API_KEY
     Log("Requesting: %s" % url)
 
-    if authenticate:
-        myheaders = auth_headers
+    myheaders = {'apikey': GetApiKey()}
 
     try:
         return JSON.ObjectFromString(
@@ -69,7 +66,7 @@ def HttpReq(url, authenticate=True, retry=True):
             raise e
 
         API_KEY = ''
-        return HttpReq(url, authenticate, False)
+        return HttpReq(url, False)
         
 
 
