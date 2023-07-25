@@ -130,7 +130,13 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                     continue
 
                 # Get series data
-                series_id = file_data['SeriesIDs'][0]['SeriesID']['ID'] # Taking the first matching anime. Not supporting multi-anime linked files for now. eg. Those two Toriko/One Piece episodes
+                series_ids = try_get(file_data['SeriesIDs'], 0, None)
+
+                if series_ids is None:
+                    Log.info('Unrecognized file. Skipping!')
+                    continue
+
+                series_id = series_ids['SeriesID']['ID'] # Taking the first matching anime. Not supporting multi-anime linked files for now. eg. Those two Toriko/One Piece episodes
                 series_data = {}
                 series_data['shoko'] = HttpReq('api/v3/Series/%s' % series_id) # http://127.0.0.1:8111/api/v3/Series/24
                 series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id) # # http://127.0.0.1:8111/api/v3/Series/24/AniDB

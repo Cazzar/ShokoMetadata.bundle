@@ -45,6 +45,7 @@ def GetApiKey():
 
     return API_KEY
 
+auth_headers = {'apikey': GetApiKey()}
 
 def HttpPost(url, postdata):
     myheaders = {'Content-Type': 'application/json'}
@@ -58,7 +59,7 @@ def HttpReq(url, authenticate=True, retry=True):
     Log("Requesting: %s" % url)
 
     if authenticate:
-        myheaders = {'apikey': GetApiKey()}
+        myheaders = auth_headers
 
     try:
         return JSON.ObjectFromString(
@@ -98,7 +99,13 @@ class ShokoCommonAgent:
                     return
 
                 # Get series data
-                series_id = file_data['SeriesIDs'][0]['SeriesID']['ID'] # Taking the first matching anime. Not supporting multi-anime linked files for now. eg. Those two Toriko/One Piece episodes
+                series_ids = try_get(file_data['SeriesIDs'], 0, None)
+
+                if series_ids is None:
+                    Log.info('Unrecognized file. Skipping!')
+                    return
+
+                series_id = series_ids['SeriesID']['ID'] # Taking the first matching anime. Not supporting multi-anime linked files for now. eg. Those two Toriko/One Piece episodes
                 series_data = {}
                 series_data['shoko'] = HttpReq('api/v3/Series/%s' % series_id) # http://127.0.0.1:8111/api/v3/Series/24
                 series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id) # http://127.0.0.1:8111/api/v3/Series/24/AniDB
@@ -186,9 +193,8 @@ class ShokoCommonAgent:
             for index, result in enumerate(prelimresults):
                 # Get series data
                 series_id = result['IDs']['ID']
-                series_data = {}
-                series_data['shoko'] = result # Just to make it uniform across every place it's used
-                series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id)
+                # Just to make it uniform across every place it's used
+                series_data = {'shoko': result, 'anidb': HttpReq('api/v3/Series/%s/AniDB' % series_id)}
 
                 # Get year from air date
                 airdate = try_get(series_data['anidb'], 'AirDate', None)
@@ -216,7 +222,8 @@ class ShokoCommonAgent:
             # Get series data
             series_data = {}
             series_data['shoko'] = HttpReq('api/v3/Episode/%s/Series' % aid) # http://127.0.0.1:8111/api/v3/Series/24
-            series_id = series_data['shoko']['IDs']['ID']
+            series_id = try_get(series_data['shoko'], 'IDs')
+            series_id = try_get(series_id, 'ID')
             series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id) # http://127.0.0.1:8111/api/v3/Series/24/AniDB
 
             # Get episode data
@@ -328,7 +335,7 @@ class ShokoCommonAgent:
         # Get cast
         cast = HttpReq('api/v3/Series/%s/Cast?roleType=Seiyuu' % aid) # http://127.0.0.1:8111/api/v3/Series/24/Cast?roleType=Seiyuu
         metadata.roles.clear()
-        Log('Cast')
+        Log('Fetching cast data...')
         for role in cast:
             meta_role = metadata.roles.new()
             meta_role.name = role['Staff']['Name']
