@@ -109,7 +109,6 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
         for idx, file in enumerate(files):
             try:
                 Log.info('file: %s', file)
-                # http://127.0.0.1:8111/api/ep/getbyfilename?apikey=d422dfd2-bdc3-4219-b3bb-08b85aa65579&filename=%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
 
                 # Get file data using filename
                 # http://127.0.0.1:8111/api/v3/File/PathEndsWith/Clannad/%5Bjoseole99%5D%20Clannad%20-%2001%20(1280x720%20Blu-ray%20H264)%20%5B8E128DF5%5D.mkv
@@ -135,61 +134,57 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                     continue
 
                 series_id = series_ids['SeriesID']['ID'] # Taking the first matching anime. Not supporting multi-anime linked files for now. eg. Those two Toriko/One Piece episodes
-                series_data = {}
-                series_data['shoko'] = HttpReq('api/v3/Series/%s' % series_id) # http://127.0.0.1:8111/api/v3/Series/24
-                series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id) # http://127.0.0.1:8111/api/v3/Series/24/AniDB
+                series_data = HttpReq('api/v3/Series/%s?includeDataFrom=AniDB' % series_id) # http://127.0.0.1:8111/api/v3/Series/24?includeDataFrom=AniDB
 
                 # Get preferred/overridden title. Preferred title is the one shown in Desktop.
-                show_title = series_data['shoko']['Name'].encode('utf-8') #no idea why I need to do this.
+                show_title = series_data['Name'].encode('utf-8') #no idea why I need to do this.
                 Log.info('Show Title: %s', show_title)
 
                 # Get episode data
-                ep_multi = len(file_data['SeriesIDs'][0]['EpisodeIDs']) # Account for multi episode files
-                for ep in range(ep_multi):
-                    ep_id = file_data['SeriesIDs'][0]['EpisodeIDs'][ep]['ID']
-                    ep_data = {}
-                    ep_data['anidb'] = HttpReq('api/v3/Episode/%s/AniDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/AniDB
-                    ep_data['tvdb'] = HttpReq('api/v3/Episode/%s/TvDB' % ep_id) # http://127.0.0.1:8111/api/v3/Episode/212/TvDB
+                episode_multi = len(file_data['SeriesIDs'][0]['EpisodeIDs']) # Account for multi episode files
+                for episode in range(episode_multi):
+                    episode_id = file_data['SeriesIDs'][0]['EpisodeIDs'][episode]['ID']
+                    episode_data = HttpReq('api/v3/Episode/%s?includeDataFrom=AniDB,TvDB' % episode_id) # http://127.0.0.1:8111/api/v3/Episode/212/AniDB?includeDataFrom=AniDB,TvDB
                     
                     # Get episode type
-                    ep_type = ep_data['anidb']['Type']
+                    episode_type = episode_data['AniDB']['Type']
 
                     # Ignore multi episode files of differing types (anidb episode relations)
-                    if ep > 0 and ep_type != ep_data['anidb']['Type']: continue
+                    if episode > 0 and episode_type != episode_data['AniDB']['Type']: continue
 
                     # Get season number
                     season = 0
-                    if ep_type == 'Normal': season = 1
-                    elif ep_type == 'Special': season = 0
-                    elif ep_type == 'ThemeSong': season = -1
-                    elif ep_type == 'Trailer': season = -2
-                    elif ep_type == 'Parody': season = -3
-                    elif ep_type == 'Unknown': season = -4
+                    if episode_type == 'Normal': season = 1
+                    elif episode_type == 'Special': season = 0
+                    elif episode_type == 'ThemeSong': season = -1
+                    elif episode_type == 'Trailer': season = -2
+                    elif episode_type == 'Parody': season = -3
+                    elif episode_type == 'Unknown': season = -4
                     if not Prefs['SingleSeasonOrdering']:
-                        ep_data['tvdb'] = try_get(ep_data['tvdb'], 0, None) # Take the first link, as explained before
-                        if ep_data['tvdb'] is not None:
-                            season = ep_data['tvdb']['Season']
+                        episode_data['TvDB'] = try_get(episode_data['TvDB'], 0, None) # Take the first link, as explained before
+                        if episode_data['TvDB'] is not None:
+                            season = episode_data['TvDB']['Season']
 
                     # Ignore these by choice.
                     if season == 0 and Prefs['IncludeSpecials'] == False: continue
                     if season < 0 and Prefs['IncludeOther'] == False: continue
 
                     # Ignore movies in preference for Shoko Movie Scanner, but keep specials as Plex sees specials as duplicate
-                    if (try_get(series_data['anidb'], 'Type', 'Unknown') == 'Movie' and season >= 1 and Prefs['CombineSeriesAndMovies'] == False):
+                    if (try_get(series_data['AniDB'], 'Type', 'Unknown') == 'Movie' and season >= 1 and Prefs['CombineSeriesAndMovies'] == False):
                         Log.info('It\'s a movie. Skipping!')
                         continue
 
                     Log.info('Season: %s', season)
 
-                    if not Prefs['SingleSeasonOrdering'] and ep_data['tvdb'] is not None:
-                        episode_number = ep_data['tvdb']['Number']
+                    if not Prefs['SingleSeasonOrdering'] and episode_data['TvDB'] is not None:
+                        episode_number = episode_data['TvDB']['Number']
                     else:
-                        episode_number = ep_data['anidb']['EpisodeNumber']
+                        episode_number = episode_data['AniDB']['EpisodeNumber']
 
                     Log.info('Episode Number: %s', episode_number)
 
                     vid = Media.Episode(show_title, season, episode_number)
-                    if ep_multi > 1: vid.display_offset = (ep * 100) / ep_multi # required for multi episode files
+                    if episode_multi > 1: vid.display_offset = (episode * 100) / episode_multi # required for multi episode files
                     Log.info('vid: %s', vid)
                     vid.parts.append(file)
                     mediaList.append(vid)

@@ -131,16 +131,14 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                     continue
 
                 series_id = series_ids['SeriesID']['ID'] # Taking the first matching anime. Not supporting multi-anime linked files for now. eg. Those two Toriko/One Piece episodes
-                series_data = {}
-                series_data['shoko'] = HttpReq('api/v3/Series/%s' % series_id) # http://127.0.0.1:8111/api/v3/Series/24
-                series_data['anidb'] = HttpReq('api/v3/Series/%s/AniDB' % series_id) # # http://127.0.0.1:8111/api/v3/Series/24/AniDB
+                series_data = HttpReq('api/v3/Series/%s?includeDataFrom=AniDB' % series_id) # http://127.0.0.1:8111/api/v3/Series/24?includeDataFrom=AniDB
                 
-                if try_get(series_data['anidb'], 'Type', 'Unknown') != 'Movie':
+                if try_get(series_data['AniDB'], 'Type', 'Unknown') != 'Movie':
                     Log.info('It\'s not a movie. Skipping!')
                     continue
 
                 # Get preferred/overridden title. Preferred title is the one shown in Desktop.
-                show_title = series_data['shoko']['Name'].encode('utf-8') #no idea why I need to do this.
+                show_title = series_data['Name'].encode('utf-8') #no idea why I need to do this.
                 Log.info('Show Title: %s', show_title)
 
                 # Get episode data
@@ -150,17 +148,17 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                     Log.info('Unrecognized file. Skipping!')
                     continue
 
-                ep_ids = try_get(series_ids['EpisodeIDs'], 0, None)
+                episode_ids = try_get(series_ids['EpisodeIDs'], 0, None)
 
                 if series_ids is None:
                     Log.info('Unrecognized file. Skipping!')
                     continue
 
-                ep_id = ep_ids['ID'] # Taking the first link, again
-                ep_data = {'anidb': HttpReq('api/v3/Episode/%s/AniDB' % ep_id)}
+                episode_id = episode_ids['ID'] # Taking the first link, again
+                anidb_episode_data = HttpReq('api/v3/Episode/%s/AniDB' % episode_id)
 
                 # Get year from air date
-                air_date = try_get(ep_data['anidb'], 'AirDate', None)
+                air_date = try_get(anidb_episode_data, 'AirDate', None)
                 season_year = air_date.split('-')[0] if air_date is not None else None
                 Log.info('season year: %s', season_year)
 
