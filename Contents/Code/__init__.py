@@ -88,6 +88,9 @@ class ShokoCommonAgent:
                 # Take the first file. As we are searching with both parent folder and filename, there should be only one result.
                 if len(file_data) > 1:
                     Log('File search has more than 1 result. HOW DID YOU DO IT?')
+                    Log('Unsupported! Skipping...')
+                    return
+
                 file_data = file_data[0]
 
                 # Ignore unrecognized files
