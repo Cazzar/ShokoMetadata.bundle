@@ -139,7 +139,7 @@ def Scan(path, files, mediaList, subdirs, language=None, root=None):
                     Log.info('It\'s not a movie. Skipping!')
                     continue
 
-                # Get preferred/overriden title. Preferred title is the one shown in Desktop.
+                # Get preferred/overridden title. Preferred title is the one shown in Desktop.
                 show_title = series_data['shoko']['Name'].encode('utf-8') #no idea why I need to do this.
                 Log.info('Show Title: %s', show_title)
 
