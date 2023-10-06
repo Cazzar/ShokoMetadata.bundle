@@ -270,6 +270,29 @@ class ShokoCommonAgent:
             metadata.title = series_data['Name']
             metadata.rating = float(series_data['AniDB']['Rating']['Value']/100)
 
+            # Make a dict of language -> title for all series titles in anidb data
+            series_titles = {}
+            for item in series_data['AniDB']['Titles']:
+                if item['Type'] != 'Short': # Exclude all short titles
+                    series_titles[item['Language']] = item['Name']
+
+            # Get original title according to the preference
+            title = None
+            for lang in Prefs['OriginalTitleLanguagePreference'].split(','):
+                lang = lang.strip()
+                title = try_get(series_titles, lang.lower(), None)
+                if title is not None: break
+
+            # Append the original title to the sort title to make it searchable
+            if title is not None and title != metadata.title:
+                # Switch to using metadata.original_title instead (if Plex fixes blocking issue)
+                # metadata.original_title = title
+                metadata.title_sort = metadata.title + ' [' + title + ']'
+                Log('Original Series Title: %s' % title)
+            else:
+                # metadata.original_title = metadata.title
+                metadata.title_sort = metadata.title
+
             # Get air date
             airdate = try_get(series_data['AniDB'], 'AirDate', None)
             if airdate is not None:
@@ -378,7 +401,7 @@ class ShokoCommonAgent:
 
                 episode_obj = metadata.seasons[season].episodes[episode_number]
 
-                # Make a dict of language -> title for all titles in anidb data
+                # Make a dict of language -> title for all episode titles in anidb data
                 episode_titles = {}
                 for item in episode_data['AniDB']['Titles']:
                     episode_titles[item['Language']] = item['Name']
@@ -393,13 +416,7 @@ class ShokoCommonAgent:
 
                 # Replace Ambiguous Titles with Series Title
                 SingleEntryTitles = ['Complete Movie', 'Music Video', 'OAD', 'OVA', 'Short Movie', 'TV Special', 'Web'] # AniDB titles used for single entries which are ambiguous
-                if title in SingleEntryTitles:
-                    # Make a dict of language -> title for all series titles in anidb data
-                    series_titles = {}
-                    for item in series_data['AniDB']['Titles']:
-                        if item['Type'] != 'Short': # Exclude all short titles
-                            series_titles.setdefault(item['Language'], item['Name']) # Use setdefault() to use the first title for each language
-                    
+                if title in SingleEntryTitles:  
                     # Get series title according to the preference
                     singleTitle = title
                     for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):

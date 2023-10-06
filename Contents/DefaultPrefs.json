@@ -37,6 +37,13 @@
     },
 
     {
+        "id": "OriginalTitleLanguagePreference",
+        "label": "The preferred languages for the original series title, separated by a comma",
+        "type": "text",
+        "default": "EN, X-JAT"
+    },
+
+    {
         "id": "EpisodeTitleLanguagePreference",
         "label": "The preferred languages for episode titles, separated by a comma",
         "type": "text",
