@@ -255,6 +255,7 @@ class ShokoCommonAgent:
             for lang in Prefs['SeriesAltTitleLanguagePreference'].split(','):
                 lang = lang.strip()
                 alt_title = try_get(series_titles, lang.lower(), None)
+                if alt_title == movie_name: continue # Skip if main title is same as alt title
                 if alt_title is not None: break
 
             if alt_title is not None:
@@ -329,6 +330,7 @@ class ShokoCommonAgent:
             for lang in Prefs['SeriesAltTitleLanguagePreference'].split(','):
                 lang = lang.strip()
                 alt_title = try_get(series_titles, lang.lower(), None)
+                if alt_title == title: continue # Skip if main title is same as alt title
                 if alt_title is not None: break
 
             metadata.title = title
