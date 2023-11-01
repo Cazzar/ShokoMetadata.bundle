@@ -37,10 +37,10 @@
     },
 
     {
-        "id": "OriginalTitleLanguagePreference",
-        "label": "The preferred languages for the original series title, separated by a comma",
+        "id": "SeriesTitleLanguagePreference",
+        "label": "The preferred languages for the series title, separated by a comma",
         "type": "text",
-        "default": "EN, X-JAT"
+        "default": "SHOKO, EN, X-JAT"
     },
 
     {

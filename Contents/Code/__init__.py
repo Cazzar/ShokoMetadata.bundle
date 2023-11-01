@@ -223,16 +223,27 @@ class ShokoCommonAgent:
 
             aid = series_id # Change aid to series ID
 
-            # Make a dict of language -> title for all titles in anidb data
+            # Make a dict of language -> title for all series titles in anidb data + add preferred title in Shoko
+            series_titles = {}
+            for item in series_data['AniDB']['Titles']:
+                series_titles[item['Language']] = item['Name']
+            series_titles['shoko'] = series_data['Name']
+
+            # Make a dict of language -> title for all episode titles in anidb data
             episode_titles = {}
             for item in anidb_episode_data['Titles']:
                 episode_titles[item['Language']] = item['Name']
 
+            movie_name = None
+            for lang in Prefs['SeriesTitleLanguagePreference'].split(','):
+                lang = lang.strip()
+                movie_name = try_get(series_titles, lang.lower(), None)
+                if movie_name is not None: break
+            if movie_name is None: movie_name = series_titles['shoko'] # If not found, fallback to preferred title in Shoko
+            movie_sort_name = movie_name
+
             title = try_get(episode_titles, 'en', None)
-            if title in ['Complete Movie', 'Web']:
-                movie_name = series_data['AniDB']['Name']
-                movie_sort_name = series_data['AniDB']['Name']
-            else:
+            if title not in ['Complete Movie', 'Web']:
                 # Get episode title according to the preference
                 title = None
                 for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
@@ -240,8 +251,8 @@ class ShokoCommonAgent:
                     title = try_get(episode_titles, lang.lower(), None)
                     if title is not None: break
                 if title is None: title = episode_titles['en'] # If not found, fallback to EN title
-                movie_name = series_data['Name'] + ' - ' + title
-                movie_sort_name = series_data['Name'] + ' - ' + str(anidb_episode_data['EpisodeNumber']).zfill(3)
+                movie_sort_name = movie_name + ' - ' + str(anidb_episode_data['EpisodeNumber']).zfill(3)
+                movie_name += ' - ' + title
 
             Log('Movie Title: %s' % movie_name)
 
@@ -264,34 +275,28 @@ class ShokoCommonAgent:
             # Get series data
             series_data = HttpReq('api/v3/Series/%s?includeDataFrom=AniDB' % aid) # http://127.0.0.1:8111/api/v3/Series/24?includeDataFrom=AniDB
 
-            Log('Series Title: %s' % series_data['Name'])
-
             metadata.summary = summary_sanitizer(try_get(series_data['AniDB'], 'Description'))
             metadata.title = series_data['Name']
             metadata.rating = float(series_data['AniDB']['Rating']['Value']/100)
 
-            # Make a dict of language -> title for all series titles in anidb data
+            # Make a dict of language -> title for all series titles in anidb data + add preferred title in Shoko
             series_titles = {}
             for item in series_data['AniDB']['Titles']:
                 if item['Type'] != 'Short': # Exclude all short titles
                     series_titles[item['Language']] = item['Name']
+            series_titles['shoko'] = series_data['Name']
 
             # Get original title according to the preference
             title = None
-            for lang in Prefs['OriginalTitleLanguagePreference'].split(','):
+            for lang in Prefs['SeriesTitleLanguagePreference'].split(','):
                 lang = lang.strip()
                 title = try_get(series_titles, lang.lower(), None)
                 if title is not None: break
+            if title is None: title = series_titles['shoko'] # If not found, fallback to preferred title in Shoko
 
-            # Append the original title to the sort title to make it searchable
-            if title is not None and title != metadata.title:
-                # Switch to using metadata.original_title instead (if Plex fixes blocking issue)
-                # metadata.original_title = title
-                metadata.title_sort = metadata.title + ' [' + title + ']'
-                Log('Original Series Title: %s' % title)
-            else:
-                # metadata.original_title = metadata.title
-                metadata.title_sort = metadata.title
+            metadata.title = title
+            metadata.title_sort = title
+            Log('Series Title: %s' % title)
 
             # Get air date
             airdate = try_get(series_data['AniDB'], 'AirDate', None)
@@ -419,12 +424,12 @@ class ShokoCommonAgent:
                 if title in SingleEntryTitles:  
                     # Get series title according to the preference
                     singleTitle = title
-                    for lang in Prefs['EpisodeTitleLanguagePreference'].split(','):
+                    for lang in Prefs['SeriesTitleLanguagePreference'].split(','):
                         lang = lang.strip()                                   
                         title = try_get(series_titles, lang.lower(), title)
                         if title is not singleTitle: break
-                    if title is singleTitle: # If not found, fallback to EN series title
-                        title = try_get(series_titles, 'en', title)
+                    if title is singleTitle: # If not found, fallback to series title
+                        title = metadata.title
                     if title is singleTitle: # Fallback to TvDB title as a last resort
                         if try_get(episode_data['TvDB'], 'Title') != '': title = try_get(episode_data['TvDB'], 'Title')
 
