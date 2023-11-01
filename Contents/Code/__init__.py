@@ -226,6 +226,7 @@ class ShokoCommonAgent:
             # Make a dict of language -> title for all series titles in anidb data + add preferred title in Shoko
             series_titles = {}
             for item in series_data['AniDB']['Titles']:
+                if item['Language'] == 'x-jat' and item['Type'] != 'Main': continue # Skip x-jat synonym titles and always take the main title
                 series_titles[item['Language']] = item['Name']
             series_titles['shoko'] = series_data['Name']
 
@@ -282,6 +283,7 @@ class ShokoCommonAgent:
             # Make a dict of language -> title for all series titles in anidb data + add preferred title in Shoko
             series_titles = {}
             for item in series_data['AniDB']['Titles']:
+                if item['Language'] == 'x-jat' and item['Type'] != 'Main': continue # Skip x-jat synonym titles and always take the main title
                 if item['Type'] != 'Short': # Exclude all short titles
                     series_titles[item['Language']] = item['Name']
             series_titles['shoko'] = series_data['Name']
@@ -295,7 +297,16 @@ class ShokoCommonAgent:
             if title is None: title = series_titles['shoko'] # If not found, fallback to preferred title in Shoko
 
             metadata.title = title
-            metadata.title_sort = title
+            original_title = try_get(series_titles, 'x-jat', None)
+
+            if original_title is not None:
+                # Append the original title to the sort title to make it searchable
+                metadata.title_sort = title + ' [' + original_title + ']'
+                # Set metadata.original_title to main x-jat title (if Plex fixes blocking issue)
+                # metadata.original_title = try_get(series_titles, 'x-jat', None)
+            else:
+                metadata.title_sort = title
+
             Log('Series Title: %s' % title)
 
             # Get air date
