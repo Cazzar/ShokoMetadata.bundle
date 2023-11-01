@@ -47,7 +47,7 @@
         "id": "SeriesAltTitleLanguagePreference",
         "label": "The preferred languages for the series alt title, separated by a comma. Set to \"SHOKO\" to get preferred title",
         "type": "text",
-        "default": "EN, X-JAT, SHOKO"
+        "default": "X-JAT, EN, SHOKO"
     },
 
     {
