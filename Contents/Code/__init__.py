@@ -288,7 +288,7 @@ class ShokoCommonAgent:
                     series_titles[item['Language']] = item['Name']
             series_titles['shoko'] = series_data['Name']
 
-            # Get original title according to the preference
+            # Get series title according to the preference
             title = None
             for lang in Prefs['SeriesTitleLanguagePreference'].split(','):
                 lang = lang.strip()

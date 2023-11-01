@@ -38,7 +38,7 @@
 
     {
         "id": "SeriesTitleLanguagePreference",
-        "label": "The preferred languages for the series title, separated by a comma",
+        "label": "The preferred languages for the series title, separated by a comma. Set to \"SHOKO\" to get preferred title",
         "type": "text",
         "default": "SHOKO, EN, X-JAT"
     },
