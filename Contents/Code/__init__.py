@@ -223,12 +223,21 @@ class ShokoCommonAgent:
 
             aid = series_id # Change aid to series ID
 
+            # Get original title
+            original_title = None
+            original_title_language = None
+            for item in series_data['AniDB']['Titles']:
+                if item['Type'] == 'Main':
+                    original_title = item['Name']
+                    original_title_language = item['Language']
+                    break
+
             # Make a dict of language -> title for all series titles in anidb data + add preferred title in Shoko
             series_titles = {}
             for item in series_data['AniDB']['Titles']:
-                if item['Language'] == 'x-jat' and item['Type'] != 'Main': continue # Skip x-jat synonym titles and always take the main title
                 series_titles[item['Language']] = item['Name']
             series_titles['shoko'] = series_data['Name']
+            series_titles[original_title_language] = original_title # Get main title for original language instead of synonym title
 
             # Make a dict of language -> title for all episode titles in anidb data
             episode_titles = {}
@@ -241,7 +250,18 @@ class ShokoCommonAgent:
                 movie_name = try_get(series_titles, lang.lower(), None)
                 if movie_name is not None: break
             if movie_name is None: movie_name = series_titles['shoko'] # If not found, fallback to preferred title in Shoko
-            movie_sort_name = movie_name
+
+            alt_title = None
+            for lang in Prefs['SeriesAltTitleLanguagePreference'].split(','):
+                lang = lang.strip()
+                alt_title = try_get(series_titles, lang.lower(), None)
+                if alt_title is not None: break
+
+            if alt_title is not None:
+                # Append the alt title to the sort title to make it searchable
+                movie_sort_name = movie_name + ' [' + alt_title + ']'
+            else:
+                movie_sort_name = movie_name
 
             title = try_get(episode_titles, 'en', None)
             if title not in ['Complete Movie', 'Web']:
@@ -280,13 +300,22 @@ class ShokoCommonAgent:
             metadata.title = series_data['Name']
             metadata.rating = float(series_data['AniDB']['Rating']['Value']/100)
 
+            # Get original title
+            original_title = None
+            original_title_language = None
+            for item in series_data['AniDB']['Titles']:
+                if item['Type'] == 'Main':
+                    original_title = item['Name']
+                    original_title_language = item['Language']
+                    break
+
             # Make a dict of language -> title for all series titles in anidb data + add preferred title in Shoko
             series_titles = {}
             for item in series_data['AniDB']['Titles']:
-                if item['Language'] == 'x-jat' and item['Type'] != 'Main': continue # Skip x-jat synonym titles and always take the main title
                 if item['Type'] != 'Short': # Exclude all short titles
                     series_titles[item['Language']] = item['Name']
             series_titles['shoko'] = series_data['Name']
+            series_titles[original_title_language] = original_title # Get main title for original language instead of synonym title
 
             # Get series title according to the preference
             title = None
@@ -296,16 +325,22 @@ class ShokoCommonAgent:
                 if title is not None: break
             if title is None: title = series_titles['shoko'] # If not found, fallback to preferred title in Shoko
 
-            metadata.title = title
-            original_title = try_get(series_titles, 'x-jat', None)
+            alt_title = None
+            for lang in Prefs['SeriesAltTitleLanguagePreference'].split(','):
+                lang = lang.strip()
+                alt_title = try_get(series_titles, lang.lower(), None)
+                if alt_title is not None: break
 
-            if original_title is not None:
-                # Append the original title to the sort title to make it searchable
-                metadata.title_sort = title + ' [' + original_title + ']'
-                # Set metadata.original_title to main x-jat title (if Plex fixes blocking issue)
-                # metadata.original_title = try_get(series_titles, 'x-jat', None)
+            metadata.title = title
+
+            if alt_title is not None:
+                # Append the alt title to the sort title to make it searchable
+                metadata.title_sort = title + ' [' + alt_title + ']'
             else:
                 metadata.title_sort = title
+
+            # Set metadata.original_title to main x-jat title (if Plex fixes blocking issue)
+            # metadata.original_title = original_title
 
             Log('Series Title: %s' % title)
 
